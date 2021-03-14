@@ -32,7 +32,7 @@ class Population:
         self.elitism_ratio = elitism_ratio
         self.selection_type = selection_type
         self.crossover_type = crossover_type
-        self.chromosomes = None
+        self.chromosomes = []
         self.has_ranked_chromosomes = False
         self.population_fitness = 0
 
@@ -59,7 +59,7 @@ class Population:
         """
         index = random.randrange(1, len(parent_1.genes))
         child_1_genes = parent_1.genes[:index] + parent_2.genes[index:]
-        child_2_genes = parent_2[:index] + parent_1[index:]
+        child_2_genes = parent_2.genes[:index] + parent_1.genes[index:]
         child_1 = Chromosome(genes=child_1_genes)
         child_2 = Chromosome(genes=child_2_genes)
         return child_1, child_2
@@ -97,7 +97,7 @@ class Population:
         child_1, child_2 = parent_1, parent_2
         child_1.fitness, child_2.fitness = 0, 0
 
-        self.crossover_chromosomes(parent_1, parent_2)
+        self.single_point_crossover(parent_1, parent_2)
         # Perform cross over if random number is less than cross over probability
         if random.random() < self.crossover_probability:
             child_1, child_2 = crossover(parent_1, parent_2)
@@ -161,7 +161,8 @@ class Population:
 
         # Move the N fittest chromosomes to the next generation based on elitism
         if self.elitism_ratio:
-            num_elite = self.size * self.elitism_ratio
+            # Round number of elites to nearest integer
+            num_elite = int(round(self.size * self.elitism_ratio))
             elite_chromosomes = self.chromosomes[0:num_elite]
             next_generation[0:num_elite] = elite_chromosomes
 

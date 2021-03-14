@@ -33,7 +33,7 @@ class MPGeneticAlgorithm:
         self.migration_probability = migration_probability
         self.migration_frequency = migration_frequency
         self.elitism_ratio = elitism_ratio
-        self.all_populations = None
+        self.all_populations = []
 
     def create_populations(self) -> None:
         """
@@ -49,6 +49,7 @@ class MPGeneticAlgorithm:
                 elitism_ratio=self.elitism_ratio,
             )
             self.all_populations.append(population)
+            population.create_chromosomes(self.input_data)
 
     def update_populations(self):
         """

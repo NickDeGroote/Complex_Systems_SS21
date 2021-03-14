@@ -31,3 +31,9 @@ class Chromosome:
         """
         self.fitness = fitness_function(self.genes)
         return self.fitness
+
+    def __repr__(self):
+        """
+        Return Chromosome representation in human readable form.
+        """
+        return repr((self.fitness, self.genes))
