@@ -7,14 +7,23 @@ Created on Tue Mar  9 20:40:34 2021
 """
 import numpy as np
 
+testCluster = [[1, 1, 0, 1],[0, 0, 0, 0],[0, 0 ,0, 0],[0, 0, 0, 1]]
+
+
+
+
+
 #given a 2d array and a size, this function will compute number of clusters and average cluster size
 
 def getClusters(array, height, width):
     #an array to keep track of which cells have been visited
-    visited = np.zeros(height, width)
+    visited = np.zeros((height, width))
    
     #two lists to keep track of the parents of clusters and cluster membership
-    parentNodes = [[],[],[]]
+    parentNodes = []
+    clusterMembership = []
+    childNodes = []
+    
     #keeps track of the number of clusters
     numClusters = 0
     
@@ -24,8 +33,9 @@ def getClusters(array, height, width):
                 #a stack to keep track of which cells need to be visited
                 toVisit = []
                 #add the first node to the list of parent nodes
-                parentNodes[0].append([i, j])
-                parentNodes[1][numClusters] += 1
+                parentNodes.append([i, j])
+                childNodes.append([])
+                clusterMembership.append(1)
                 toVisit.append([i, j])
                 visited[i][j] = 1
                 
@@ -74,9 +84,9 @@ def getClusters(array, height, width):
                             if(array[yCoord][xCoord] and not visited[yCoord][xCoord]):
                                 newCellFound = True
                                 #increment the number of cells in this cluster
-                                parentNodes[numClusters][1] += 1
+                                clusterMembership[numClusters] += 1
                                 #add the cell to the list of child cells in the cluster
-                                parentNodes[numClusters][2].append([yCoord, xCoord])
+                                childNodes[numClusters].append([yCoord, xCoord])
                                 #push the new cell onto the stack
                                 toVisit.append([yCoord, xCoord])
                                 visited[yCoord][xCoord] = 1
@@ -86,7 +96,12 @@ def getClusters(array, height, width):
                             
                     if(not newCellFound):
                         toVisit.pop()
+    print(parentNodes, clusterMembership)                        
                                 
+                     
+                        
+                     
+getClusters(testCluster, 4, 4)                        
                      
 #maybe make a constant so it's not always a power of 2
 #maybe a power of 3 would work better due to the moore neighborhood
@@ -115,42 +130,43 @@ def getFractalComplexity(array, height, width, R1):
             numSquares.append(0)
             #if you're not at the base/lowest magnification
             #create the tesselation for the next lowest magnification level
-            scaleH = height/pow(2, i)
-            scaleW = width/pow(2, i)
+            levelH = int(scaleH)
+            levelW = int(scaleW)
+            scaleH = int(height/pow(2, i))
+            scaleW = int(width/pow(2, i))
             if(not i==k):
-            scaleH = height/pow(2, i)
-            scaleW = width/pow(2, i)        
-            scaleArrays.append[np.zeros(scaleH, scaleW), 0]
-                scaleArrays.append(np.zeros(scaleH, scaleW))
+                scaleH = height/pow(2, i)
+                scaleW = width/pow(2, i)        
+                scaleArrays.append(np.zeros((scaleH, scaleW)))
                     
                 #for your magnification level
                 #this is in here so you don't have to check a million times whether this is the kth iteration
-                for y in range(2 * scaleH):
-                    for x in range(2 * scaleW):
+                for y in range(levelH):
+                    for x in range(levelW):
                         #if this square is occupied at this magnification
                         if(scaleArrays[i][y][x]):
                             #increment the number of squares used at this level
                             numSquares[i] += 1
                             #set the corresponding square at the next lowest magnification to occupied
                             #doesn't matter how high this is as long as it's not 0, it's occupied
-                            scaleArrays[i+1][(int)floor(y/2)][(int)floor(x/2)] += 1
+                            scaleArrays[i+1][(int)(floor(y/2))][(int)(floor(x/2))] += 1
             else:
-                 for y in range(2 * scaleH):
-                    for x in range(2 * scaleW):
+                 for y in range(levelH):
+                    for x in range(levelW):
                         if(scaleArrays[i][y][x]):
                             numSquares[i] += 1
                          
-     dimensions = []
+            dimensions = []
      
-     for i in range(k):
-         #calculate s epsilon for each differential magnification level
-         sEp = numSquares[i]/numSquares[i+1]
-         #get rid of the quotient by taking log base 2, log2(2) = 1
-         #and magnification is 2x
-         dimension = log(sEp, 2)
-         dimensions.append(dimension)
-         
-            
+            for i in range(k):
+                #calculate s epsilon for each differential magnification level
+                sEp = numSquares[i]/numSquares[i+1]
+                #get rid of the quotient by taking log base 2, log2(2) = 1
+                #and magnification is 2x
+                dimension = log(sEp, 2)
+                dimensions.append(dimension)
+                 
+                    
                                 
                                 
                                 
