@@ -1,5 +1,6 @@
-import numpy as np
 import random
+
+import numpy as np
 
 
 class GeneticAlgorithm:
@@ -13,8 +14,23 @@ class GeneticAlgorithm:
         lb ------ vector of lower bounds for the genes
     """
 
-    def __init__(self, m, n, maxgen, pc, pm, er, ub, lb, fitness_function, chromosome_to_include=[],
-                 mutate_percent=False, mutate_percentage=.01, pop_to_include=[], view_gen=False):
+    def __init__(
+        self,
+        m,
+        n,
+        maxgen,
+        pc,
+        pm,
+        er,
+        ub,
+        lb,
+        fitness_function,
+        chromosome_to_include=[],
+        mutate_percent=False,
+        mutate_percentage=0.01,
+        pop_to_include=[],
+        view_gen=False,
+    ):
         self.cgcurve = np.zeros(maxgen)
         self.m = m
         self.n = n
@@ -53,7 +69,7 @@ class GeneticAlgorithm:
         # HAlf of the time we mutate higher, half the time we mutate lower
         if self.mutate_percent:
             R = np.random.rand()
-            if R < .5:
+            if R < 0.5:
                 mutates = self.mutate_low * child[:-1]
             else:
                 mutates = self.mutate_high * child[:-1]
@@ -86,13 +102,13 @@ class GeneticAlgorithm:
         if r1 >= self.pc:
             child1 = parent1
         else:
-            child1 = np.append(parent1[0: cros_pt], parent2[cros_pt:gene_no])
+            child1 = np.append(parent1[0:cros_pt], parent2[cros_pt:gene_no])
 
         r2 = random.uniform(0, 1)
         if r2 >= self.pc:
             child2 = parent2
         else:
-            child2 = np.append(parent2[0: cros_pt], parent1[cros_pt:gene_no])
+            child2 = np.append(parent2[0:cros_pt], parent1[cros_pt:gene_no])
 
         return child1, child2
 
@@ -149,7 +165,7 @@ class GeneticAlgorithm:
 
     def run(self):
         if self.view_gen:
-            print('Generation # ', 0)
+            print("Generation # ", 0)
         self.cgcurve[0] = np.max(self.population[:, -1])
         population = self.population
 
@@ -157,7 +173,7 @@ class GeneticAlgorithm:
         for g in np.arange(1, self.maxgen, 1):
             if self.view_gen:
                 print()
-                print('Generation # ', g)
+                print("Generation # ", g)
 
             # Calculate the fitness values
             population = self.fitness_function(population)
