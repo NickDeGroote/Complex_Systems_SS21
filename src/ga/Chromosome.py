@@ -20,6 +20,7 @@ class Chromosome:
         Mutates this Chromosome
         :return: None
         """
+        # Swaps the value of a random gene in this Chromosome
         mutation_index = random.randrange(len(self.genes))
         self.genes[mutation_index] = (0, 1)[self.genes[mutation_index] == 0]
 

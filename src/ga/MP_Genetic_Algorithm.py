@@ -19,7 +19,7 @@ class MPGeneticAlgorithm:
         generations: int = 100,
         crossover_probability: float = 0.8,
         mutation_probability: float = 0.05,
-        migration_probability: float = 0.01,
+        migration_probability: float = 0.1,
         migration_frequency: float = 1,
         elitism_ratio: float = 0.02,
     ):
