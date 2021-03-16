@@ -1,4 +1,4 @@
-import cellpylib.cellpylib as cpl
+import cellpylib as cpl
 import numpy as np
 
 
@@ -21,12 +21,12 @@ def run_GOL(initial_condition: list, timesteps: list, board_width: int, board_he
                           apply_rule=cpl.game_of_life_rule)
 
     # return only the time steps requested
-    ca_at_time_steps = []
+    # ca_at_time_steps = []
     ca_at_time_steps_1d = []
     for time_step in timesteps:
-        ca_at_time_steps.append(result[time_step])
+        # ca_at_time_steps.append(result[time_step])
         ca_at_time_steps_1d.append(result[time_step].reshape((1, board_height*board_width)))
-    return ca_at_time_steps, ca_at_time_steps_1d
+    return ca_at_time_steps_1d
 
 
 if __name__ == "__main__":
