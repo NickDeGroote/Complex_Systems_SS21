@@ -6,14 +6,15 @@ Created on Tue Mar  9 20:40:34 2021
 @author: ulam
 """
 import numpy as np
+import math
 
 testCluster = [[1, 1, 0, 1],[0, 0, 0, 0],[0, 0 ,0, 0],[0, 0, 0, 1]]
+testFractal = [[1,1,1,1,1,1,1,1],[1,0,1,0,1,0,1,0],[1,1,0,0,1,1,0,0],[1,0,0,0,1,0,0,0],[1,1,1,1,0,0,0,0],[1,0,1,0,0,0,0,0],[1,1,0,0,0,0,0,0],[1,0,0,0,0,0,0,0]]
 
 
 
 
-
-#given a 2d array and a size, this function will compute number of clusters and average cluster size
+#given a 2d array and a size, this function will get the clusters and their membership
 
 def getClusters(array, height, width):
     #an array to keep track of which cells have been visited
@@ -96,21 +97,23 @@ def getClusters(array, height, width):
                             
                     if(not newCellFound):
                         toVisit.pop()
-    print(parentNodes, clusterMembership)                        
-                                
-                     
+    print(parentNodes, clusterMembership, '\n')
+    print(childNodes)                        
+                               
+         
                         
-                     
+#there are three clusters in a 4x4 arrary and 4 cells, TL, TR, BR corners filled with second to TL also filled
+#output is right so this algorithm appears to be correct
 getClusters(testCluster, 4, 4)                        
                      
-#maybe make a constant so it's not always a power of 2
 #maybe a power of 3 would work better due to the moore neighborhood
-def getFractalComplexity(array, height, width, R1):
+def getFractalComplexity(array, height, width, R1, BASE):
     #R1 is the side length in number of cells of the least magnification
     #it is assumed that the greatest magnification will be the individual cell
-    #ideally it is a power of 2, and if it's not we pretend it is anyway
+    #ideally it is a power of BASE, and if it's not we pretend it is anyway
     #k is the number of different scales we can look at 
-    k = (int)(round(log(R1, 2)))
+    k = int(round(math.log(R1, BASE)))
+    print(k)
 
     #create a list in which to hold all the tesselated arrays and the number of squares it takes
     #to cover the live cells of the automaton at each level
@@ -128,15 +131,14 @@ def getFractalComplexity(array, height, width, R1):
     for i in range(k+1):
             #start with zero squares counted at this magnification
             numSquares.append(0)
-            #if you're not at the base/lowest magnification
+            #if you're not at the BASE/lowest magnification
             #create the tesselation for the next lowest magnification level
             levelH = int(scaleH)
             levelW = int(scaleW)
-            scaleH = int(height/pow(2, i))
-            scaleW = int(width/pow(2, i))
+            scaleH = int(height/pow(BASE, i))
+            scaleW = int(width/pow(BASE, i))
             if(not i==k):
-                scaleH = height/pow(2, i)
-                scaleW = width/pow(2, i)        
+   
                 scaleArrays.append(np.zeros((scaleH, scaleW)))
                     
                 #for your magnification level
@@ -149,26 +151,32 @@ def getFractalComplexity(array, height, width, R1):
                             numSquares[i] += 1
                             #set the corresponding square at the next lowest magnification to occupied
                             #doesn't matter how high this is as long as it's not 0, it's occupied
-                            scaleArrays[i+1][(int)(floor(y/2))][(int)(floor(x/2))] += 1
+                            scaleArrays[i+1][int(math.floor(y/BASE))][int(math.floor(x/BASE))] += 1
             else:
                  for y in range(levelH):
                     for x in range(levelW):
                         if(scaleArrays[i][y][x]):
                             numSquares[i] += 1
                          
-            dimensions = []
+    dimensions = []
      
-            for i in range(k):
-                #calculate s epsilon for each differential magnification level
-                sEp = numSquares[i]/numSquares[i+1]
-                #get rid of the quotient by taking log base 2, log2(2) = 1
-                #and magnification is 2x
-                dimension = log(sEp, 2)
-                dimensions.append(dimension)
+    for i in range(k):
+        #calculate s epsilon for each differential magnification level
+        sEp = numSquares[i]/numSquares[i+1]
+        #get rid of the quotient by taking log BASE, log2(2) = 1
+        #and magnification is BASEx
+        
+        dimension = math.log(sEp, BASE)
+        
+        dimensions.append(dimension)
+        
+    print(numSquares, '\n', dimensions)
                  
                     
-                                
-                                
+#testFractal is the sierpinski triangle rotated 30 degrees
+#the fractal complexity of the sierpinski triangle is 1.58 so
+#the algorithm appears to be correct                             
+getFractalComplexity(testFractal, 8, 8, 4, 2)                               
                                 
                                 
                                 
