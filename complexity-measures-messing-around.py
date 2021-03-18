@@ -7,6 +7,7 @@ Created on Tue Mar  9 20:40:34 2021
 """
 import numpy as np
 import math
+import statistics
 
 testCluster = [[1, 1, 0, 1],[0, 0, 0, 0],[0, 0 ,0, 0],[0, 0, 0, 1]]
 testFractal = [[1,1,1,1,1,1,1,1],[1,0,1,0,1,0,1,0],[1,1,0,0,1,1,0,0],[1,0,0,0,1,0,0,0],[1,1,1,1,0,0,0,0],[1,0,1,0,0,0,0,0],[1,1,0,0,0,0,0,0],[1,0,0,0,0,0,0,0]]
@@ -97,10 +98,27 @@ def getClusters(array, height, width):
                             
                     if(not newCellFound):
                         toVisit.pop()
-    print(parentNodes, clusterMembership, '\n')
-    print(childNodes)                        
+    
+    return(parentNodes, clusterMembership, childNodes, numClusters)
                                
-         
+
+def getClusterFitness(array, height, width, desiredClusters, desiredClusterSize, sizeConst, numConst):
+    clusterInfo = getClusters(array, height, width)
+    meanSize = statistics.mean(clusterInfo[1])
+    numClusters = clusterInfo[3]
+    
+    sizeDiff = desiredClusterSize-meanSize
+    #normalized fitness metric
+    sizeScore = 1/(math.pow(np.e, (math.pow(sizeDiff, 2))))
+    
+    clusterDiff = desiredClusters-numClusters
+    clusterScore = 1/(math.pow(np.e, (math.pow(clusterDiff, 2))))
+    
+    finalScore = (sizeConst*sizeScore + numConst*clusterScore)/(sizeConst+numConst)
+    
+    return(finalScore)
+    
+
                         
 #there are three clusters in a 4x4 arrary and 4 cells, TL, TR, BR corners filled with second to TL also filled
 #output is right so this algorithm appears to be correct
@@ -170,13 +188,37 @@ def getFractalComplexity(array, height, width, R1, BASE):
         
         dimensions.append(dimension)
         
-    print(numSquares, '\n', dimensions)
+    return(dimensions)
                  
-                    
+    
+def getFractalFitness(array, height, width, R1, base, minDim, maxDim):
+    #this will make fitness close to 0 when it's one fractal dimesion away
+    #from the goal
+    scalingConstant = 4
+    
+    dimensions = getFractalComplexity(array, height, width, R1, base)
+    meanDimension = statistics.mean(dimensions)
+    
+    #this allows for neutral space where fitness is 1 for a range
+    diff = 0
+    if(meanDimension<minDim):
+        diff = meanDimension - minDim
+    elif(meanDimension>maxDim):
+        diff = meanDimension - maxDim
+    
+    fitness = math.pow(np.e, -scalingConstant*diff)
+    
+    return(fitness, meanDimension)
+    
+    
+    
 #testFractal is the sierpinski triangle rotated 30 degrees
 #the fractal complexity of the sierpinski triangle is 1.58 so
-#the algorithm appears to be correct                             
-getFractalComplexity(testFractal, 8, 8, 4, 2)                               
+#the algorithm appears to be correct  
+print(getFractalFitness(testFractal, 8, 8, 4, 2, 1.5, 1.8))
+                           
+#getFractalComplexity(testFractal, 8, 8, 4, 2)   
+getClusters(testFractal, 8,8)                            
                                 
                                 
                                 
