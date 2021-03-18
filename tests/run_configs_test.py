@@ -13,7 +13,7 @@ Sphere Function is used with 5 populations to test the functionality.
 seed = [0] * 50
 
 # Name this correctly for what you are testing
-name_of_test = 'Number of Populations'
+name_of_test = "Number of Populations"
 
 # Whatever quantity you are testing - make it a list
 def_num_populations_list = [2, 3, 4, 5]
@@ -71,10 +71,16 @@ for def_num_populations in def_num_populations_list:
     track_final_fit_value.append(current_population_fits)
     track_final_chromosome.append(current_population_chromosomes)
 
-df_final = pd.DataFrame({name_of_test: def_num_populations_list, 'run time': track_run_time,
-                         'fit val': track_final_fit_value, 'chromosome': track_final_chromosome})
+df_final = pd.DataFrame(
+    {
+        name_of_test: def_num_populations_list,
+        "run time": track_run_time,
+        "fit val": track_final_fit_value,
+        "chromosome": track_final_chromosome,
+    }
+)
 
-df_final.to_excel((name_of_test + '_test_results.xlsx'))
+df_final.to_excel((name_of_test + "_test_results.xlsx"))
 
 # How to read data back in if needed
 # read_data = pd.read_excel((name_of_test + '_test_results.xlsx'))
