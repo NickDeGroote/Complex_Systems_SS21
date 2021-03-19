@@ -1,5 +1,6 @@
 import cellpylib as cpl
 import numpy as np
+import time
 
 
 def game_of_life_rule(neighbourhood, c, t):
@@ -67,7 +68,14 @@ if __name__ == "__main__":
     init_conditions = np.array(np.random.randint(2, size=100))
     width = 50
     height = 2
-    timesteps_to_run = [100, 120]
+    timesteps_to_run = [60]
 
+    # # Start timer at current time
+    # start_time = time.time()
 
     result_1d = run_GOL(init_conditions, timesteps_to_run, width, height)
+
+    # # Print the execution time
+    # print("Run Time: %s seconds" % (time.time() - start_time))
+
+    # cpl.plot2d_animate(cellular_automaton)
