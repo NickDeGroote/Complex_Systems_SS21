@@ -16,7 +16,7 @@ seed = [0] * 50
 name_of_test = "Number of Populations"
 
 # Whatever quantity you are testing - make it a list
-def_num_populations_list = [2, 3, 4, 5]
+param_change = [2, 3, 4, 5] # Number of populations
 
 def_population_size = 50
 def_generations = 100
@@ -31,7 +31,7 @@ track_final_fit_value = []
 track_final_chromosome = []
 
 # Must rename this to match what you are testing
-for def_num_populations in def_num_populations_list:
+for def_num_populations in param_change:
 
     # Start timer at current time
     start_time = time.time()
@@ -73,7 +73,7 @@ for def_num_populations in def_num_populations_list:
 
 df_final = pd.DataFrame(
     {
-        name_of_test: def_num_populations_list,
+        name_of_test: param_change,
         "run time": track_run_time,
         "fit val": track_final_fit_value,
         "chromosome": track_final_chromosome,
