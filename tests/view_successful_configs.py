@@ -2,6 +2,7 @@ import cellpylib as cpl
 import pandas as pd
 import numpy as np
 import ast
+import h5py
 
 
 def to_proper_list(inputlist):
@@ -21,18 +22,30 @@ def get_best_chromosome_in_this_excel(fit, chrom):
     return np.array(chrom[index_best_row][index_best])
 
 
-def get_specific_chromosome_in_this_excel(chrom, row_in_table, loc_in_row):
+def get_specific_chromosome_in_this_excel(chroms, row_in_table, loc_in_row):
     """
     Finds the best chromosome in the entire excel
     """
 
-    return np.array(chrom[row_in_table][loc_in_row])
+    return np.array(chroms[row_in_table][loc_in_row])
 
 
-read_data = pd.read_excel('Number of Populations_test_results.xlsx')
+test_name = "Number of Populations 2"
 
+# define an empty list
+chromosomes = []
+# open file and read the content in a list
+with open(test_name + "_test_chroms.txt", 'r') as filehandle:
+    for line in filehandle:
+        # remove linebreak which is the last character of the string
+        currentPlace = line[:-1]
+
+        # add item to the list
+        chromosomes.append(ast.literal_eval(currentPlace))
+
+
+read_data = pd.read_excel(test_name + "_test_results.xlsx")
 fitness = to_proper_list(read_data['fit val'])
-chromosomes = to_proper_list(read_data['chromosome'])
 
 # run_chromosome = get_best_chromosome_in_this_excel(fitness, chromosomes)
 run_chromosome = np.array(np.random.randint(2, size=50*50))

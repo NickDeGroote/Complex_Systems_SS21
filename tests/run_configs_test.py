@@ -1,5 +1,7 @@
 import time
 import pandas as pd
+import h5py
+import numpy as np
 
 from src.ga.MP_Genetic_Algorithm import MPGeneticAlgorithm
 from src.fitness_functions.sphere import sphere
@@ -13,10 +15,10 @@ Sphere Function is used with 5 populations to test the functionality.
 seed = [0] * 50
 
 # Name this correctly for what you are testing
-name_of_test = "Number of Populations"
+name_of_test = "Number of Populations 2"
 
 # Whatever quantity you are testing - make it a list
-param_change = [2, 3, 4, 5] # Number of populations
+param_change = [3, 4, 5] # Number of populations
 
 def_population_size = 50
 def_generations = 100
@@ -76,11 +78,14 @@ df_final = pd.DataFrame(
         name_of_test: param_change,
         "run time": track_run_time,
         "fit val": track_final_fit_value,
-        "chromosome": track_final_chromosome,
     }
 )
 
 df_final.to_excel((name_of_test + "_test_results.xlsx"))
 
-# How to read data back in if needed
-# read_data = pd.read_excel((name_of_test + '_test_results.xlsx'))
+# save chromosomes separately
+with open(name_of_test + "_test_chroms.txt", 'w') as filehandle:
+    for listitem in track_final_chromosome:
+        filehandle.write('%s\n' % listitem)
+
+
