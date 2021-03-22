@@ -1,6 +1,6 @@
 import random
 from operator import attrgetter
-from typing import Callable, List
+from typing import Callable, List, Tuple
 
 import matplotlib.pyplot as plt
 
@@ -80,41 +80,26 @@ class MPGeneticAlgorithm:
         :return: None
         """
         self.rank_populations()
-        decreasing_population = self.weighted_population_selection("best")
-        increasing_population = self.weighted_population_selection("worst")
+        increasing_population, decreasing_population = (
+            self.tournament_population_selection()
+        )
         if increasing_population is not None:
-            if decreasing_population.size >= 5:
+            # Minimum population size of 5
+            if decreasing_population.size > 5:
                 increasing_population.size += 1
                 decreasing_population.size -= 1
 
-    def weighted_population_selection(self, selection_type: str) -> Population:
+    def tournament_population_selection(self) -> Tuple[Population, Population]:
         """
         Gets a Population based on the weight of Population average fitness
         :return: None
         """
-        if selection_type == "worst":
-            maximum = sum(
-                population.population_fitness for population in self.all_populations
-            )
-            pick = random.uniform(0, maximum)
-            current = 0
-            for population in self.all_populations:
-                current += population.population_fitness
-                if current > pick:
-                    return population
-            return random.choice(self.all_populations)
-        elif selection_type == "best":
-            maximum = sum(
-                1 / (1 + population.population_fitness)
-                for population in self.all_populations
-            )
-            pick = random.uniform(0, maximum)
-            current = 0
-            for population in self.all_populations:
-                current += 1 / (1 + population.population_fitness)
-                if current > pick:
-                    return population
-            return random.choice(self.all_populations)
+        # Pick 2 random Chromosomes
+        members = random.sample(self.all_populations, 2)
+        # Sort the 2 selected Chromosomes with the highest fitness first
+        members.sort(key=attrgetter("population_fitness"), reverse=True)
+        # Return the fitter of the 2 Chromosomes
+        return members[0], members[1]
 
     def migrate_to_new_population(self) -> None:
         """
