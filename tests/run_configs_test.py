@@ -12,7 +12,7 @@ Sphere Function is used with 5 populations to test the functionality.
 """
 
 # Initialize seed data. This is currently unused...
-seed = [0] * 50
+seed = [50, 50, 50, 50, 50]
 
 # Name this correctly for what you are testing
 name_of_test = "Number of Populations 2"
@@ -42,6 +42,7 @@ for def_num_populations in param_change:
     mp_ga = MPGeneticAlgorithm(
         input_data=seed,
         fitness_function=sphere,
+        num_genes=50,
         num_populations=def_num_populations,
         population_size=def_population_size,
         generations=def_generations,
