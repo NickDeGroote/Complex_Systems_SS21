@@ -12,7 +12,7 @@ Sphere Function is used with 5 populations to test the functionality.
 """
 
 # Initialize seed data. This is currently unused...
-seed = [0] * 50
+seed = [50, 50, 50, 50, 50]
 
 # Name this correctly for what you are testing
 name_of_test = "Number of Populations 2"
