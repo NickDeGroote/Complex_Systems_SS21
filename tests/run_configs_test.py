@@ -42,6 +42,7 @@ for def_num_populations in param_change:
     mp_ga = MPGeneticAlgorithm(
         input_data=seed,
         fitness_function=sphere,
+        num_genes=50,
         num_populations=def_num_populations,
         population_size=def_population_size,
         generations=def_generations,
