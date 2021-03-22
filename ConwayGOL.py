@@ -54,14 +54,14 @@ def run_GOL(
     )
 
     # return only the time steps requested
-    # ca_at_time_steps = []
+    ca_at_time_steps = []
     ca_at_time_steps_1d = []
     for time_step in timesteps:
-        # ca_at_time_steps.append(result[time_step])
+        ca_at_time_steps.append(result[time_step])
         ca_at_time_steps_1d.append(
             result[time_step].reshape((1, board_height * board_width))
         )
-    return ca_at_time_steps_1d
+    return ca_at_time_steps, ca_at_time_steps_1d
 
 
 if __name__ == "__main__":
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # # Start timer at current time
     # start_time = time.time()
 
-    result_1d = run_GOL(init_conditions, timesteps_to_run, width, height)
+    result_2d, result_1d = run_GOL(init_conditions, timesteps_to_run, width, height)
 
     # # Print the execution time
     # print("Run Time: %s seconds" % (time.time() - start_time))
