@@ -1,4 +1,3 @@
-import random
 from typing import Callable, List
 
 """
@@ -15,14 +14,13 @@ class Chromosome:
         self.genes = genes
         self.fitness = 0
 
-    def mutate(self) -> None:
+    def mutate(self, index) -> None:
         """
         Mutates this Chromosome
         :return: None
         """
         # Swaps the value of a random gene in this Chromosome
-        mutation_index = random.randrange(len(self.genes))
-        self.genes[mutation_index] = (0, 1)[self.genes[mutation_index] == 0]
+        self.genes[index] = (0, 1)[self.genes[index] == 0]
 
     def calculate_fitness(self, fitness_function: Callable) -> None:
         """

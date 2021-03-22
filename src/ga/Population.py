@@ -1,4 +1,5 @@
 import random
+from copy import copy
 from operator import attrgetter
 from typing import Callable, Tuple
 
@@ -17,14 +18,16 @@ class Population:
     def __init__(
         self,
         fitness_function: Callable,
+        num_genes: int,
         population_size: int = 50,
         crossover_probability: float = 0.8,
-        mutation_probability: float = 0.05,
+        mutation_probability: float = 0.01,
         elitism_ratio: float = 0.02,
         selection_type: str = "tournament",
         crossover_type: str = "single_point",
     ):
         self.fitness_function = fitness_function
+        self.num_genes = num_genes
         self.size = population_size
         self.crossover_probability = crossover_probability
         self.mutation_probability = mutation_probability
@@ -34,17 +37,24 @@ class Population:
         self.chromosomes = []
         self.has_ranked_chromosomes = False
         self.population_fitness = 0
+        self.best_chromosome_log = []
+        self.population_fitness_log = []
+        self.population_size_log = []
 
-    def create_chromosomes(self, seed: list) -> None:
+    def create_chromosomes(self, seed: list, index) -> None:
         """
         Creates a chromosome from the data in seed.
         :param seed: Data needed to create the chromosome
+        :param index: Index for the weight of the current seed
         :return: Chromosome object for that individual
         """
-        # TODO: For initial conditions, seed contains a list of weights for the percentage of living / dead cells
-        for _ in range(self.size):
-            # Random list of zeros and ones
-            genes = [random.randint(0, 1) for _ in range(len(seed))]
+        for i in range(self.size):
+            genes = [0] * self.num_genes
+            one_weight = int(round(100 * (seed[index] / 100)))
+            zero_weight = 100 - one_weight
+            weighted_list = [0] * zero_weight + [1] * one_weight
+            for j in range(0, self.num_genes):
+                genes[j] = random.choice(weighted_list)
             chromosome = Chromosome(genes=genes)
             self.chromosomes.append(chromosome)
 
@@ -69,6 +79,15 @@ class Population:
         Select a Chromosome from this population using the Roulette Wheel method
         :return: The selected Chromosome
         """
+        maximum = sum(1 / (1 + chromosome.fitness) for chromosome in self.chromosomes)
+        pick = random.uniform(0, maximum)
+        current = 0
+        for chromosome in self.chromosomes:
+            current += chromosome.fitness
+            if current > pick:
+                return chromosome
+        # If we haven't made a selection yet, return a random Chromosome
+        return random.choice(self.chromosomes)
 
     def tournament_selection(self) -> Chromosome:
         """
@@ -96,14 +115,20 @@ class Population:
             # Default to single point cross over
             crossover = self.single_point_crossover
 
-        # Initialize children to be clones of parents. Otherwise could set to None...
-        child_1, child_2 = parent_1, parent_2
         # Perform cross over if random number is less than cross over probability
         if random.random() < self.crossover_probability:
             child_1, child_2 = crossover(parent_1, parent_2)
+        else:
+            child_1 = Chromosome(genes=copy(parent_1.genes))
+            child_2 = Chromosome(genes=copy(parent_2.genes))
         return child_1, child_2
 
     def select_parents(self) -> Tuple[Chromosome, Chromosome]:
+        """
+        Selects two parents for breeding based on either the roulette wheel or
+        tournament method
+        :return: Tuple of the two selected parents
+        """
         # Select the selection method from the specified selection type string
         if self.selection_type == "tournament":
             selection = self.tournament_selection
@@ -122,8 +147,9 @@ class Population:
         :return: None
         """
         # Mutates Chromosome if random number is less than mutation probability
-        if random.random() < self.mutation_probability:
-            chromosome.mutate()
+        for i in range(len(chromosome.genes)):
+            if random.random() < self.mutation_probability:
+                chromosome.mutate(i)
 
     def calc_chromosome_fitnesses(self) -> None:
         """
@@ -152,7 +178,7 @@ class Population:
         total_pop_fitness = 0
         for chromosome in self.chromosomes:
             total_pop_fitness += chromosome.fitness
-        self.population_fitness = total_pop_fitness / self.size
+        self.population_fitness = total_pop_fitness / len(self.chromosomes)
         return self.population_fitness
 
     def create_next_generation(self) -> None:
@@ -205,6 +231,15 @@ class Population:
         """
         self.chromosomes.append(chromosome)
         self.size = len(self.chromosomes)
+
+    def log_population_attributes(self) -> None:
+        """
+        Used to log the best Chromosome in the Population at each generation
+        :return: None
+        """
+        self.best_chromosome_log.append(self.get_best_chromosome())
+        self.population_fitness_log.append(self.calc_population_fitness())
+        self.population_size_log.append(len(self.chromosomes))
 
     def get_best_chromosome(self) -> Chromosome:
         """
