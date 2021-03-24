@@ -17,14 +17,22 @@ def game_of_life_rule(neighbourhood, c, t):
     total = np.sum(neighbourhood)
     if center_cell == 1:
         if total - 1 < die_under_pop:
-            return 0  # Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
+            return (
+                0
+            )  # Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
         if total - 1 == die_under_pop or total - 1 == die_over_pop:
-            return 1  # Any live cell with two or three live neighbours lives on to the next generation.
+            return (
+                1
+            )  # Any live cell with two or three live neighbours lives on to the next generation.
         if total - 1 > die_over_pop:
-            return 0  # Any live cell with more than three live neighbours dies, as if by overpopulation.
+            return (
+                0
+            )  # Any live cell with more than three live neighbours dies, as if by overpopulation.
     else:
         if total == live_reproduction:
-            return 1  # Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+            return (
+                1
+            )  # Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
         else:
             return 0
 

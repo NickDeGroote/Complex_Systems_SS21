@@ -5,9 +5,11 @@ import numpy as np
 
 size = 10
 
+
 def sphere(x: list) -> float:
-    fitness = 100-sum(x)
+    fitness = 100 - sum(x)
     return fitness
+
 
 def entropyValue(x: list) -> float:
     fitness = abs(cpl.shannon_entropy(x))
@@ -25,7 +27,7 @@ def getFractalComplexity(array2):
     # ideally it is a power of BASE, and if it's not we pretend it is anyway
     # k is the number of different scales we can look at
     k = int(round(math.log(R1, BASE)))
-    #print(k)
+    # print(k)
 
     # create a list in which to hold all the tesselated arrays and the number of squares it takes
     # to cover the live cells of the automaton at each level
@@ -49,7 +51,7 @@ def getFractalComplexity(array2):
         levelW = int(scaleW)
         scaleH = int(height / pow(BASE, i))
         scaleW = int(width / pow(BASE, i))
-        if (not i == k):
+        if not i == k:
 
             scaleArrays.append(np.zeros((scaleH, scaleW)))
 
@@ -58,16 +60,18 @@ def getFractalComplexity(array2):
             for y in range(levelH):
                 for x in range(levelW):
                     # if this square is occupied at this magnification
-                    if (scaleArrays[i][y][x]):
+                    if scaleArrays[i][y][x]:
                         # increment the number of squares used at this level
                         numSquares[i] += 1
                         # set the corresponding square at the next lowest magnification to occupied
                         # doesn't matter how high this is as long as it's not 0, it's occupied
-                        scaleArrays[i + 1][int(math.floor(y / BASE))][int(math.floor(x / BASE))] += 1
+                        scaleArrays[i + 1][int(math.floor(y / BASE))][
+                            int(math.floor(x / BASE))
+                        ] += 1
         else:
             for y in range(levelH):
                 for x in range(levelW):
-                    if (scaleArrays[i][y][x]):
+                    if scaleArrays[i][y][x]:
                         numSquares[i] += 1
 
     dimensions = []
@@ -82,6 +86,4 @@ def getFractalComplexity(array2):
 
         dimensions.append(dimension)
 
-    return (dimension)
-
-
+    return dimension
