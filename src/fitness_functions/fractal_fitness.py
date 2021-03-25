@@ -56,6 +56,18 @@ def getFractalComplexity(array, height, width, R1, BASE):
                         numSquares[i] += 1
 
     dimensions = []
+    
+    for i in range(k):
+        #calculate s epsilon for each differential magnification level
+        sEp = numSquares[i]/numSquares[i+1]
+        #get rid of the quotient by taking log BASE, log2(2) = 1
+        #and magnification is BASEx
+        
+        dimension = math.log(sEp, BASE)
+        
+        dimensions.append(dimension)
+        
+    return(dimensions)
 
 
 # recommended values 1.58 to 1.9 for fractals
