@@ -18,7 +18,7 @@ seed = [50, 50, 50, 50, 50]
 name_of_test = "Number of Populations 2"
 
 # Whatever quantity you are testing - make it a list
-param_change = [3, 4, 5] # Number of populations
+param_change = [3, 4, 5]  # Number of populations
 
 def_population_size = 50
 def_generations = 100
@@ -85,8 +85,6 @@ df_final = pd.DataFrame(
 df_final.to_excel((name_of_test + "_test_results.xlsx"))
 
 # save chromosomes separately
-with open(name_of_test + "_test_chroms.txt", 'w') as filehandle:
+with open(name_of_test + "_test_chroms.txt", "w") as filehandle:
     for listitem in track_final_chromosome:
-        filehandle.write('%s\n' % listitem)
-
-
+        filehandle.write("%s\n" % listitem)

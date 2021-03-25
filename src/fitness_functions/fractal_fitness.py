@@ -1,33 +1,14 @@
+import numpy as np
 import math
 import statistics
-import cellpylib as cpl
-import numpy as np
-
-size = 10
 
 
-def sphere(x: list) -> float:
-    fitness = 100 - sum(x)
-    return fitness
-
-
-def entropyValue(x: list) -> float:
-    fitness = abs(cpl.shannon_entropy(x))
-    return fitness
-
-
-def getFractalComplexity(array2):
-    height = size
-    width = size
-    R1 = 4
-    BASE = 2
-    array = np.reshape(array2, (height, width))
+def getFractalComplexity(array, height, width, R1, BASE):
     # R1 is the side length in number of cells of the least magnification
     # it is assumed that the greatest magnification will be the individual cell
     # ideally it is a power of BASE, and if it's not we pretend it is anyway
     # k is the number of different scales we can look at
     k = int(round(math.log(R1, BASE)))
-    # print(k)
 
     # create a list in which to hold all the tesselated arrays and the number of squares it takes
     # to cover the live cells of the automaton at each level
@@ -38,7 +19,7 @@ def getFractalComplexity(array2):
 
     # start it off with the greatest magnification and work up
     scaleArrays.append(np.array(array))
-    # create empty list to hold number of squares at each magnification level
+    # create empty list to hold number of sqares at each magnification level
     numSquares = []
 
     # for each magnification level
@@ -76,14 +57,53 @@ def getFractalComplexity(array2):
 
     dimensions = []
 
-    for i in range(k):
-        # calculate s epsilon for each differential magnification level
-        sEp = numSquares[i] / numSquares[i + 1]
-        # get rid of the quotient by taking log BASE, log2(2) = 1
-        # and magnification is BASEx
 
-        dimension = math.log(sEp, BASE)
+# recommended values 1.58 to 1.9 for fractals
+# default life rules has complexity ~1.0 to 1.1 when alive
+# and ~0.5 - 0.7 when quiescent
+def getFractalFitness(array, height, width, R1, base, minDim, maxDim):
+    # this will make fitness close to 0 when it's one fractal dimesion away
+    # from the goal
+    scalingConstant = 4
 
-        dimensions.append(dimension)
+    dimensions = getFractalComplexity(array, height, width, R1, base)
+    meanDimension = statistics.mean(dimensions)
 
-    return dimension
+    # this allows for neutral space where fitness is 1 for a range
+    diff = 0
+    if meanDimension < minDim:
+        diff = minDim - meanDimension
+    elif meanDimension > maxDim:
+        diff = meanDimension - maxDim
+
+    fitness = math.pow(np.e, -scalingConstant * diff)
+
+    return (fitness, meanDimension)
+
+
+def defaultFractalFitness(timestepBoards):
+    minDim = 1.58
+    maxDim = 1.9
+
+    fractalFitnessList = []
+    for board in timestepBoards:
+        stepBoard = np.array(board)
+        boardShape = np.shape(stepBoard)
+        height = boardShape[0]
+        width = boardShape[1]
+
+        R1 = None
+        base = None
+        if not (height % 2):
+            base = 2
+            R1 = 4
+        elif not (height % 3):
+            base = 3
+            R1 = 9
+
+        fractalInfo = getFractalFitness(
+            stepBoard, height, width, R1, base, minDim, maxDim
+        )
+        fractalFitnessList.append(fractalInfo[0])
+
+    return fractalFitnessList
