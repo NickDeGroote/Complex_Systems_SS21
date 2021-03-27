@@ -1,5 +1,7 @@
 import numpy as np
 import copy
+import matplotlib.pyplot as plt
+
 
 class SchellingSegregationModel:
 
@@ -100,6 +102,17 @@ class SchellingSegregationModel:
         for epoch in np.arange(0, self.epochs):
             agent_locations = np.where(self.environment != 0)
             agent_rows, agent_columns = agent_locations
+            number_agents = len(agent_rows)
+
+            # get happiness at each epoch
+            epoch_happiness = 0
+            for row in np.arange(self.simulation_environment_height):
+                for col in np.arange(self.simulation_environment_width):
+                    agent_happy_level = self.check_happiness(row, col, self.environment[row, col])
+                    if agent_happy_level >= 3:
+                        epoch_happiness += 1
+            happiness_at_epochs.append(epoch_happiness/number_agents)
+
 
             while len(agent_rows) != 0:
                 random_agent = np.random.randint(len(agent_rows))
@@ -115,13 +128,7 @@ class SchellingSegregationModel:
                     self.environment[move_to_row, move_to_col] = self.environment[agent_row, agent_col]
                     self.environment[agent_row, agent_col] = 0
 
-            epoch_happiness = 0
-            for row in np.arange(self.simulation_environment_height):
-                for col in np.arange(self.simulation_environment_width):
-                    agent_happy_level = self.check_happiness(row, col, self.environment[row, col])
-                    if agent_happy_level >= 3:
-                        epoch_happiness += 1
-            happiness_at_epochs.append(epoch_happiness)
+
 
         return happiness_at_epochs, self.environment, self.initial_enve
 
@@ -129,8 +136,8 @@ if __name__ == "__main__":
     k = 3  # number of agents of own typ in neighborhood for agent j to be happy
     sim_env_width = 40
     sim_env_height = 40
-    population_dens = .9  # how much of the environment is occupied by agents
-    epochs = 20
+    population_dens = .5  # how much of the environment is occupied by agents
+    epochs = 21
     cells_to_check_for_relocation = 100
     model = SchellingSegregationModel(
         k=k,
@@ -140,4 +147,22 @@ if __name__ == "__main__":
         epochs=epochs,
         q=cells_to_check_for_relocation)
 
-    track_happiness, enve_final, enve_init = model.run_sim()
+    happiness_for_each_sim = np.array([])
+    sims_to_run = 30
+
+    for sim in np.arange(0, sims_to_run):
+        track_happiness, enve_final, enve_init = model.run_sim()
+        happiness_for_each_sim = np.append([happiness_for_each_sim], np.array(track_happiness))
+        print('Sim number: ', sim)
+
+    happiness_for_each_sim = happiness_for_each_sim.reshape(sims_to_run, epochs)
+    average_happiness = happiness_for_each_sim.sum(axis=0)/sims_to_run
+
+    epoch_array = np.arange(0, epochs)
+    plt.figure(1)
+    plt.plot(epoch_array, average_happiness)
+    plt.title('Mean Happiness time-series')
+    plt.xlabel('Epoch')
+    plt.ylabel('Mean Happiness')
+    plt.xticks(np.arange(min(epoch_array), max(epoch_array) + 1, 2.0))
+    plt.show()
