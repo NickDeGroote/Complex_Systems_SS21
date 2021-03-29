@@ -56,21 +56,21 @@ def getFractalComplexity(array, height, width, R1, BASE):
                         numSquares[i] += 1
 
     dimensions = []
-    
+
     for i in range(k):
-        #calculate s epsilon for each differential magnification level
-        if(numSquares[i] == 0):
-            dimensions.append(0) 
+        # calculate s epsilon for each differential magnification level
+        if numSquares[i] == 0:
+            dimensions.append(0)
             continue
-        sEp = numSquares[i]/numSquares[i+1]
-        #get rid of the quotient by taking log BASE, log2(2) = 1
-        #and magnification is BASEx
-        
+        sEp = numSquares[i] / numSquares[i + 1]
+        # get rid of the quotient by taking log BASE, log2(2) = 1
+        # and magnification is BASEx
+
         dimension = math.log(sEp, BASE)
-        
+
         dimensions.append(dimension)
-        
-    return(dimensions)
+
+    return dimensions
 
 
 # recommended values 1.58 to 1.9 for fractals
@@ -83,7 +83,7 @@ def getFractalFitness(array, height, width, R1, base, minDim, maxDim):
 
     dimensions = getFractalComplexity(array, height, width, R1, base)
     meanDimension = statistics.mean(dimensions)
-    
+
     # this allows for neutral space where fitness is 1 for a range
     diff = 0
     if meanDimension < minDim:

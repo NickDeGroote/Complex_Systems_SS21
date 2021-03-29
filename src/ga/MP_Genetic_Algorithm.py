@@ -1,4 +1,5 @@
 import random
+import time
 from operator import attrgetter
 from typing import Callable, List, Tuple
 
@@ -120,11 +121,13 @@ class MPGeneticAlgorithm:
         """
         self.create_populations()
         for i in range(1, self.num_generations + 1):
+            start_time = time.time()
             self.update_populations()
             self.change_population_sizes()
             # Perform migration every number of specified generations
             if i % self.migration_frequency == 0:
                 self.migrate_to_new_population()
+            self.display_iteration_info(i, self.num_generations, start_time)
 
     def get_best_chromosomes(self) -> List[Chromosome]:
         """
@@ -135,6 +138,15 @@ class MPGeneticAlgorithm:
         for population in self.all_populations:
             best_chromosomes.append(population.get_best_chromosome())
         return best_chromosomes
+
+    @staticmethod
+    def display_iteration_info(current_gen: int, total_gens: int, start_time: float):
+        delta_t = time.time() - start_time
+        print(
+            "Generation: {} / {}  -  Time: {:0.3f} seconds".format(
+                current_gen, total_gens, delta_t
+            )
+        )
 
     def generate_plots(self) -> None:
         """

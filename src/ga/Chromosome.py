@@ -22,7 +22,7 @@ class Chromosome:
         # Swaps the value of a random gene in this Chromosome
         self.genes[index] = (0, 1)[self.genes[index] == 0]
 
-    def calculate_fitness(self, fitness_function: Callable) -> None:
+    def calculate_fitness(self, fitness_function: Callable) -> float:
         """
         Calculates the fitness of this Chromosome
         :param fitness_function: Function evaluating fitness

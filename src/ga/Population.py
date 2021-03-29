@@ -1,5 +1,7 @@
 import random
+import multiprocessing
 from copy import copy
+from joblib import Parallel, delayed
 from operator import attrgetter
 from typing import Callable, Tuple
 
@@ -40,6 +42,7 @@ class Population:
         self.best_chromosome_log = []
         self.population_fitness_log = []
         self.population_size_log = []
+        self.parallel = True
 
     def create_chromosomes(self, seed: list, index) -> None:
         """
@@ -156,9 +159,18 @@ class Population:
         Calculates the fitness of all chromosomes in this Population
         :return: None
         """
-        # Calculates fitness for each Chromosome in the population
-        for chromosome in self.chromosomes:
-            chromosome.calculate_fitness(self.fitness_function)
+        if self.parallel:
+            num_cpu_cores = multiprocessing.cpu_count()
+            fitnesses = Parallel(n_jobs=num_cpu_cores)(
+                delayed(chromosome.calculate_fitness)(self.fitness_function)
+                for chromosome in self.chromosomes
+            )
+            for chromosome, fitness in zip(self.chromosomes, fitnesses):
+                chromosome.fitness = fitness
+        else:
+            for chromosome in self.chromosomes:
+                chromosome.calculate_fitness(self.fitness_function)
+
 
     def rank_chromosomes(self) -> None:
         """
