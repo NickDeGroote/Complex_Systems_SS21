@@ -182,7 +182,7 @@ class SchellingSegregationModel:
                         self.environment[agent_row, agent_col] = 0
                         self.friends[move_to_row * self.simulation_environment_width + move_to_col] = self.friends[
                             agent_row * self.simulation_environment_width + agent_col]
-                        self.friends[agent_row * self.simulation_environment_width + agent_col] = [0, 0, 0, 0, 0]
+                        self.friends[agent_row * self.simulation_environment_width + agent_col] = [0]*self.number_friends
 
             epoch_happiness = 0
             for row in np.arange(self.simulation_environment_height):
