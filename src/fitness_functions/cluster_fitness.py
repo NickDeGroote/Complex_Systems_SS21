@@ -47,9 +47,11 @@ def getClusters(array, height, width):
                     # to let the program know whether it needs to generate all this
                     # and just saving it the first time in the stack structure
                     if y == 0:
+                        yCoords.append(height-1)
                         yCoords.append(y)
                         yCoords.append(y + 1)
                     elif y == height - 1:
+                        yCoords.append(0)
                         yCoords.append(y - 1)
                         yCoords.append(y)
                     else:
@@ -57,9 +59,11 @@ def getClusters(array, height, width):
                         yCoords.append(y)
                         yCoords.append(y + 1)
                     if x == 0:
+                        xCoords.append(width-1)
                         xCoords.append(x)
                         xCoords.append(x + 1)
                     elif x == width - 1:
+                        xCoords.append(0)
                         xCoords.append(x - 1)
                         xCoords.append(x)
                     else:
@@ -92,6 +96,7 @@ def getClusters(array, height, width):
 
     return (parentNodes, clusterMembership, childNodes, numClusters)
 
+print(getClusters(testCluster, 4,4))
 
 def getClusterCenters(array, height, width):
     clusterInfo = getClusters(array, height, width)
