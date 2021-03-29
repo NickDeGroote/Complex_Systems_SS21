@@ -177,7 +177,7 @@ class SchellingSegregationModel:
                         self.environment[agent_row, agent_col] = 0
                 elif relocation_type == 2:
                     [move_to_row, move_to_col] = self.relocation_policy_social(agent_row, agent_col)
-                    if [move_to_row, move_to_col] != [agent_row, agent_col]:
+                    if ([move_to_row, move_to_col] != [agent_row, agent_col]) and (current_happy_level < 3):
                         self.environment[move_to_row, move_to_col] = self.environment[agent_row, agent_col]
                         self.environment[agent_row, agent_col] = 0
                         self.friends[move_to_row * self.simulation_environment_width + move_to_col] = self.friends[
