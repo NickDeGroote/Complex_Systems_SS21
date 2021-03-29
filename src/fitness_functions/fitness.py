@@ -1,7 +1,7 @@
 from ConwayGOL import run_GOL
 
 from src.fitness_functions.fractal_fitness import defaultFractalFitness
-from src.fitness_functions.cluster_fitness import defaultClusterDistanceFitness
+from src.fitness_functions.cluster_fitness import defaultClusterDistanceFitness and maxClusterSizeFitness
 import math
 import statistics as stats
 import numpy as np
@@ -26,6 +26,11 @@ def fractalFitness(initialConditions, timesteps):
 def clusterDistanceFitness(initialConditions, timesteps):
     result2d = getGOLResults(initialConditions, timesteps)
     fitnessList = defaultClusterDistanceFitness(result2d)
-    print(fitnessList)
+    meanFitness = stats.mean(fitnessList)
+    return meanFitness
+
+def clusterSizeFitness(initialConditions, timesteps):
+    result2d = getGOLResults(initialConditions, timesteps)
+    fitnessList = maxClusterSizeFitness(result2d)
     meanFitness = stats.mean(fitnessList)
     return meanFitness

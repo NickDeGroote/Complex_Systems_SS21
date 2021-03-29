@@ -147,3 +147,18 @@ def defaultClusterDistanceFitness(timestepBoards):
         )
 
     return fitnessList
+
+def getMaxClusterSizeFitness(array, height, width):
+    clusterSizes = getClusters(array, height, width)[1]
+    return(max(clusterSizes))
+
+def maxClusterSizeFitness(timestepBoards):
+    fitnessList = []
+    for board in timestepBoards:
+        stepBoard = np.array(board)
+        boardShape = np.shape(stepBoard)
+        height = boardShape[0]
+        width = boardShape[1]
+        fitnessList.append(getMaxClusterSizeFitness(stepBoard, height, width))
+    return fitnessList
+
