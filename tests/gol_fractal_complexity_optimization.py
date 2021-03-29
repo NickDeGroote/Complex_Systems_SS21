@@ -21,8 +21,8 @@ mp_ga = MPGeneticAlgorithm(
     fitness_function=lambda ic: fractalFitness(ic, range(40, 60)),
     num_genes=900,
     num_populations=3,
-    population_size=10,
-    generations=3,
+    population_size=50,
+    generations=100,
     crossover_probability=0.8,
     mutation_probability=0.01,
     migration_probability=0.1,
@@ -43,4 +43,4 @@ for i in range(mp_ga.num_populations):
     print("Population {} best Chromosome - (Fitness, [Genes]):".format(i))
     print(best_chromosomes[i])
 
-#mp_ga.generate_plots()
+mp_ga.generate_plots()
