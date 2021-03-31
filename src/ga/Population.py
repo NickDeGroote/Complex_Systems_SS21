@@ -25,7 +25,7 @@ class Population:
         crossover_probability: float = 0.8,
         mutation_probability: float = 0.01,
         elitism_ratio: float = 0.02,
-        selection_type: str = "tournament",
+        selection_type: str = "roulette",
         crossover_type: str = "single_point",
     ):
         self.fitness_function = fitness_function
@@ -170,7 +170,6 @@ class Population:
         else:
             for chromosome in self.chromosomes:
                 chromosome.calculate_fitness(self.fitness_function)
-
 
     def rank_chromosomes(self) -> None:
         """
