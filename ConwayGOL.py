@@ -48,14 +48,16 @@ def run_GOL(
     :param board_height: the height of the board
     :return: Chromosome object for that individual
     """
+    full_board = np.zeros((1, board_width*2, board_height*2))
     # shape from list to array
     initial_board = initial_condition.reshape((board_height, board_width))
     # Needs to be this format for the cpl package
     initial_board = np.array([initial_board])
 
+    full_board[:, int(board_width/2):int(board_width*1.5), int(board_height/2):int(board_height*1.5)] = initial_board
     # evolve the cellular automaton for max given time steps
     result = cpl.evolve2d(
-        initial_board,
+        full_board,
         timesteps=(timesteps[-1] + 1),
         neighbourhood="Moore",
         apply_rule=game_of_life_rule,
@@ -66,8 +68,9 @@ def run_GOL(
     ca_at_time_steps_1d = []
     for time_step in timesteps:
         ca_at_time_steps.append(result[time_step])
+        # TODO: Change board size
         ca_at_time_steps_1d.append(
-            result[time_step].reshape((1, board_height * board_width))
+            result[time_step].reshape((1, board_width*2 * board_width*2))
         )
     return ca_at_time_steps, ca_at_time_steps_1d
 
