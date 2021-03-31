@@ -5,7 +5,7 @@ from Schelling_Segregation import SchellingSegregationModel
 
 if __name__ == "__main__":
     # How many sims to run of each
-    sims_to_run = 2
+    sims_to_run = 30
 
     # Run the random policy
     k = 3  # number of agents of own type in neighborhood for agent j to be happy
@@ -81,10 +81,10 @@ if __name__ == "__main__":
     plt.figure(3)
     plt.plot(epoch_array, avg_hap_rand, label='Random Policy')
     plt.plot(epoch_array, avg_hap_fnd1, label='Social Network Recommendation: n=5, p=3')
-    plt.plot(epoch_array, avg_hap_fnd2, label='Social Network Recommendation: n=10, p=3')
-    plt.plot(epoch_array, avg_hap_fnd3, label='Social Network Recommendation: n=15, p=3')
-    plt.plot(epoch_array, avg_hap_fnd4, label='Social Network Recommendation: n=5, p=5')
-    plt.plot(epoch_array, avg_hap_fnd5, label='Social Network Recommendation: n=10, p=5')
+    plt.plot(epoch_array, avg_hap_fnd2, label='Social Network Recommendation: n=5, p=5')
+    plt.plot(epoch_array, avg_hap_fnd3, label='Social Network Recommendation: n=10, p=3')
+    plt.plot(epoch_array, avg_hap_fnd4, label='Social Network Recommendation: n=10, p=5')
+    plt.plot(epoch_array, avg_hap_fnd5, label='Social Network Recommendation: n=15, p=3')
     plt.plot(epoch_array, avg_hap_fnd6, label='Social Network Recommendation: n=15, p=5')
     plt.title('Mean Happiness time-series')
     plt.xlabel('Epoch')
