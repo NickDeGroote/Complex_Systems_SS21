@@ -96,8 +96,6 @@ def getClusters(array, height, width):
 
     return (parentNodes, clusterMembership, childNodes, numClusters)
 
-print(getClusters(testCluster, 4,4))
-
 def getClusterCenters(array, height, width):
     clusterInfo = getClusters(array, height, width)
     parentNodes = clusterInfo[0]

@@ -1,7 +1,8 @@
+import os
 import time
 import inspect
 import pandas as pd
-from src.fitness_functions.fitness import fractalFitness, clusterDistanceFitness
+from src.fitness_functions.fitness import fractalFitness, clusterDistanceFitness, clusterSizeFitness
 from src.ga.MP_Genetic_Algorithm import MPGeneticAlgorithm
 
 """
@@ -9,22 +10,22 @@ Template for setting up Game of Life tests and saving results
 """
 
 # Define Parameters for test
-name_of_test = "GOL_Test"
+name_of_test = os.path.basename(__file__)[:-3] # Filename w/o .py extension
 # Percentage of cells that will be alive when initializing populations
-seed = [49, 50, 51]
+seed = [50, 50, 50]
 # Range of iterations which will be used to evaluate fitness
 start = 40
 stop = 60
 eval_range = range(start, stop)
 # Callback for the fitness function being used
-fitness_function = lambda ic: fractalFitness(ic, eval_range)
+fitness_function = lambda ic: clusterDistanceFitness(ic, eval_range)
 # Number of initial condition cells
 k = 4
 num_genes = (2**k) ** 2
 # Number of populations being used in the MP GA
-num_populations = 3
+num_populations = len(seed)
 # Number of Chromosomes initially in each Population
-population_size = 25
+population_size = int(num_genes / 4)
 # A migration event will be analyzed after this many generations
 migration_frequency = 1
 # Probability that a migration will occur when being analyzed
@@ -32,9 +33,9 @@ migration_probability = 0.1
 
 # GA stochastic parameters
 crossover_probability = 0.75
-mutation_probability = 0.01
+mutation_probability = 0.03
 elitism_ratio = 0.05
-generations = 5
+generations = 100
 # Start timer at current time
 start_time = time.time()
 
