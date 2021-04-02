@@ -1,7 +1,7 @@
 from ConwayGOL import run_GOL
 
 from src.fitness_functions.fractal_fitness import defaultFractalFitness
-from src.fitness_functions.cluster_fitness import defaultClusterDistanceFitness and maxClusterSizeFitness
+from src.fitness_functions.cluster_fitness import defaultClusterDistanceFitness, maxClusterSizeFitness
 import math
 import statistics as stats
 import numpy as np
