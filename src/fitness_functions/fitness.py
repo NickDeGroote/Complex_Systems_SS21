@@ -32,5 +32,5 @@ def clusterDistanceFitness(initialConditions, timesteps):
 def clusterSizeFitness(initialConditions, timesteps):
     result2d = getGOLResults(initialConditions, timesteps)
     fitnessList = maxClusterSizeFitness(result2d)
-    meanFitness = stats.mean(fitnessList)
+    meanFitness = stats.mean(fitnessList) if fitnessList else 0
     return meanFitness
