@@ -153,7 +153,7 @@ def defaultClusterDistanceFitness(timestepBoards):
 
 def getMaxClusterSizeFitness(array, height, width):
     clusterSizes = getClusters(array, height, width)[1]
-    return(max(clusterSizes))
+    return( max(clusterSizes) if clusterSizes else 0)
 
 def maxClusterSizeFitness(timestepBoards):
     fitnessList = []

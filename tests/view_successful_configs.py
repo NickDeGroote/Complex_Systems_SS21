@@ -30,7 +30,7 @@ def get_specific_chromosome_in_this_excel(chroms, row_in_table, loc_in_row):
     return np.array(chroms[row_in_table][loc_in_row])
 
 
-test_name = "gol_optimization_template"
+test_name = "pop_90_90_90_fractal_fitness"
 
 # define an empty list
 chromosomes = []
