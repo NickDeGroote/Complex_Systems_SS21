@@ -29,7 +29,7 @@ def get_specific_chromosome_in_this_excel(chroms, row_in_table, loc_in_row):
     return np.array(chroms[row_in_table][loc_in_row])
 
 
-test_name = "multi_test"
+test_name = "mig_rate_multi"
 
 # define an empty list
 chromosomes = []
