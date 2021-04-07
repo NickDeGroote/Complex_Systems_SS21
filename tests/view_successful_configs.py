@@ -3,6 +3,7 @@ import cellpylib as cpl
 import pandas as pd
 import numpy as np
 import ast
+import matplotlib.pyplot as plt
 import png
 import h5py
 
@@ -31,7 +32,9 @@ def get_specific_chromosome_in_this_excel(chroms, row_in_table, loc_in_row):
     return np.array(chroms[row_in_table][loc_in_row])
 
 
-test_name = "Num_T_Step_Fit_Check_1"
+
+test_name = "Num_T_Step_Fit_Check_10"
+
 
 # define an empty list
 chromosomes = []
@@ -73,4 +76,10 @@ cellular_automaton = cpl.evolve2d(
     apply_rule=cpl.game_of_life_rule,
 )
 
-cpl.plot2d_animate(cellular_automaton)
+# cpl.plot2d_animate(cellular_automaton)
+
+
+for ca in cellular_automaton:
+    plt.imshow(ca, cmap='Greys')
+    plt.pause(.2)
+    plt.show()
