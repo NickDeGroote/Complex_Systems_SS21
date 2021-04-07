@@ -2,6 +2,7 @@ import numpy as np
 import copy
 import matplotlib.pyplot as plt
 
+
 class SchellingSegregationModel:
 
     def __init__(
@@ -35,8 +36,6 @@ class SchellingSegregationModel:
                                           self.population_density / 2])
         self.environment = environment.reshape(self.simulation_environment_width, self.simulation_environment_height)
         self.initial_enve = copy.deepcopy(self.environment)
-
-
 
     def check_happiness(self, cell_j, cell_i, cell_type):
         if cell_type == 0:
@@ -72,8 +71,8 @@ class SchellingSegregationModel:
         available_locations = np.where(self.environment == 0)
         [available_locations_j, available_locations_i] = available_locations
 
-        distance_to_locations = ((available_locations_j - current_agent_row)**2
-                                 + (available_locations_i - current_agent_col)**2) ** .5
+        distance_to_locations = ((available_locations_j - current_agent_row) ** 2
+                                 + (available_locations_i - current_agent_col) ** 2) ** .5
         locations_w_distance = np.vstack((available_locations_j, available_locations_i, distance_to_locations))
         locations_sorted = locations_w_distance[:, locations_w_distance[-1].argsort()]
 
@@ -100,12 +99,19 @@ class SchellingSegregationModel:
             distances = np.delete(distances, 0)
 
             cell_type = self.environment[current_agent_row, current_agent_col]
-            happy_level = self.check_happiness(coord_i, coord_j, cell_type)
+            happy_level = self.check_happiness(coord_j, coord_i, cell_type)
+            # make sure it does not count itself as a neighbor when moving to a neighboring position!
+            if distance == 1 or distance == 2 ** .5:
+                happy_level -= 1
             if happy_level >= self.k:
                 return [coord_j, coord_i, distance]
             else:
                 checked_happy_levels.append([coord_j, coord_i, distance, happy_level])
-        best_option = np.where(checked_happy_levels == max(checked_happy_levels[-1]))[0][0]
+        try:
+            best_option = np.where(checked_happy_levels == max(checked_happy_levels[-1]))[0][0]
+        except IndexError:
+            # no locations to move to that are close enough
+            return [current_agent_row, current_agent_col, 0]
         return checked_happy_levels[best_option][0:3]
 
     def relocation_policy_random(self, current_agent_row, current_agent_col):
@@ -127,7 +133,7 @@ class SchellingSegregationModel:
             cell_type = self.environment[current_agent_row, current_agent_col]
             happy_level = self.check_happiness(rand_j, rand_i, cell_type)
             if happy_level >= self.k:
-                distance = ((rand_j - current_agent_row)**2 + (rand_i - current_agent_col)**2)** .5
+                distance = ((rand_j - current_agent_row) ** 2 + (rand_i - current_agent_col) ** 2) ** .5
                 return [rand_j, rand_i, distance]
             else:
                 checked_happy_levels.append([rand_j, rand_i, happy_level])
@@ -135,11 +141,10 @@ class SchellingSegregationModel:
         distance = ((best_option[0] - current_agent_row) ** 2 + (best_option[1] - current_agent_col) ** 2) ** .5
         return checked_happy_levels[best_option][0:2], distance
 
-
-
     def run_sim(self):
         self.create_environment()
         happiness_at_epochs = []
+        total_distance_moved_at_epochs = []
         total_distance_moved = 0
         for epoch in np.arange(0, self.epochs):
             agent_locations = np.where(self.environment != 0)
@@ -167,34 +172,110 @@ class SchellingSegregationModel:
                 if current_happy_level < 3:
                     [move_to_row, move_to_col, distance] = self.relocation_policy_closest(agent_row, agent_col)
                     self.environment[int(move_to_row), int(move_to_col)] = self.environment[agent_row, agent_col]
+
                     self.environment[agent_row, agent_col] = 0
                     total_distance_moved += distance
+            total_distance_moved_at_epochs.append(total_distance_moved)
 
+        return happiness_at_epochs, self.environment, self.initial_enve, total_distance_moved_at_epochs
 
-        return happiness_at_epochs, self.environment, self.initial_enve, total_distance_moved
 
 if __name__ == "__main__":
+    sims_to_run = 30
 
     k = 3  # number of agents of own type in neighborhood for agent j to be happy
     sim_env_width = 40
     sim_env_height = 40
     population_dens = .9  # how much of the environment is occupied by agents
-    epochs = 101
-    cells_to_check_for_relocation = 150
-    max_distance = 1000
-    model = SchellingSegregationModel(
-        k=k,
-        simulation_environment_width=sim_env_width,
-        simulation_environment_height=sim_env_height,
-        population_density=population_dens,
-        epochs=epochs,
-        q=cells_to_check_for_relocation,
-        max_dist=max_distance)
-    track_happiness, enve_final, enve_init, total_distance_moved = model.run_sim()
+    epochs = 21
+    cells_to_check_for_relocation = 100
+    max_distances = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
-    # Plot initial environment and final environment for last simulation run
-    plt.figure(1)
-    plt.imshow(enve_init, interpolation='none')
-    plt.figure(2)
-    plt.imshow(enve_final, interpolation='none')
-    print(track_happiness[-1])
+    plot_all_sims_happy = np.array([])
+    plot_all_sims_dist_moved = np.array([])
+    for max_distance in max_distances:
+        model = SchellingSegregationModel(
+            k=k,
+            simulation_environment_width=sim_env_width,
+            simulation_environment_height=sim_env_height,
+            population_density=population_dens,
+            epochs=epochs,
+            q=cells_to_check_for_relocation,
+            max_dist=max_distance)
+
+        happiness_for_each_sim = np.array([])
+        dist_for_each_sim = np.array([])
+        for sim in np.arange(0, sims_to_run):
+            print(max_distance, sim)
+            track_happiness, enve_final, enve_init, total_distance_moved = model.run_sim()
+            happiness_for_each_sim = np.append([happiness_for_each_sim], np.array(track_happiness))
+            dist_for_each_sim = np.append([dist_for_each_sim], np.array(total_distance_moved))
+
+        happiness_for_each_sim = happiness_for_each_sim.reshape(sims_to_run, epochs)
+        average_happiness = happiness_for_each_sim.sum(axis=0) / sims_to_run
+        plot_all_sims_happy = np.append([plot_all_sims_happy], average_happiness)
+
+        dist_for_each_sim = dist_for_each_sim.reshape(sims_to_run, epochs)
+        average_distance = dist_for_each_sim.sum(axis=0) / sims_to_run
+        plot_all_sims_dist_moved = np.append([plot_all_sims_dist_moved], average_distance)
+
+    random_policy_comp_happy = [0.77757862, 0.96093731, 0.98961532, 0.9969216, 0.9990309,
+                                0.99963403, 0.99995436, 0.9999774, 1., 1., 1., 1., 1., 1., 1.,
+                                1., 1., 1., 1., 1., 1.]
+    plot_all_sims_happy = plot_all_sims_happy.reshape(len(max_distances), epochs)
+    sim2, sim3, sim4, sim5, sim6, sim7, sim8, sim9, sim10, sim11, sim12 = plot_all_sims_happy
+
+    random_policy_comp_dist = [6270.87130973, 7674.08445364, 8066.77734958, 8190.0031193,
+                               8237.62884937, 8251.87200157, 8252.87488627, 8255.08992616,
+                               8255.08992616, 8255.08992616, 8255.08992616, 8255.08992616,
+                               8255.08992616, 8255.08992616, 8255.08992616, 8255.08992616,
+                               8255.08992616, 8255.08992616, 8255.08992616, 8255.08992616,
+                               8255.08992616]
+    plot_all_sims_dist_moved = plot_all_sims_dist_moved.reshape(len(max_distances), epochs)
+    sim2d, sim3d, sim4d, sim5d, sim6d, sim7d, sim8d, sim9d, sim10d, sim11d, sim12d = plot_all_sims_dist_moved
+
+    epoch_array = np.arange(0, epochs)
+    plt.figure(3)
+    plt.plot(epoch_array, random_policy_comp_happy, label='Random Policy')
+    plt.plot(epoch_array, sim2, label='Max Distance Checked = 3')
+    plt.plot(epoch_array, sim3, label='Max Distance Checked = 4')
+    plt.plot(epoch_array, sim4, label='Max Distance Checked = 5')
+    plt.plot(epoch_array, sim5, label='Max Distance Checked = 6')
+    plt.plot(epoch_array, sim6, label='Max Distance Checked = 7')
+    plt.plot(epoch_array, sim7, label='Max Distance Checked = 8')
+    plt.plot(epoch_array, sim8, label='Max Distance Checked = 9')
+    plt.plot(epoch_array, sim9, label='Max Distance Checked = 10')
+    plt.plot(epoch_array, sim10, label='Max Distance Checked = 11')
+    plt.plot(epoch_array, sim11, label='Max Distance Checked = 12')
+    plt.plot(epoch_array, sim12, label='Max Distance Checked = 13')
+
+    plt.title('Mean Happiness time-series')
+    plt.xlabel('Epoch')
+    plt.ylabel('Mean Happiness')
+    plt.legend()
+    plt.xticks(np.arange(min(epoch_array), max(epoch_array) + 1, 2.0))
+
+    plt.figure(4)
+    plt.plot(epoch_array, random_policy_comp_dist, label='Random Policy')
+    plt.plot(epoch_array, sim2d, label='Max Distance Checked = 3')
+    plt.plot(epoch_array, sim3d, label='Max Distance Checked = 4')
+    plt.plot(epoch_array, sim4d, label='Max Distance Checked = 5')
+    plt.plot(epoch_array, sim5d, label='Max Distance Checked = 6')
+    plt.plot(epoch_array, sim6d, label='Max Distance Checked = 7')
+    plt.plot(epoch_array, sim7d, label='Max Distance Checked = 8')
+    plt.plot(epoch_array, sim8d, label='Max Distance Checked = 9')
+    plt.plot(epoch_array, sim9d, label='Max Distance Checked = 10')
+    plt.plot(epoch_array, sim10d, label='Max Distance Checked = 11')
+    plt.plot(epoch_array, sim11d, label='Max Distance Checked = 12')
+    plt.plot(epoch_array, sim12d, label='Max Distance Checked = 13')
+    plt.title('Mean Total Distance traveled over epochs time-series')
+    plt.xlabel('Epoch')
+    plt.ylabel('Mean Distance traveled')
+    plt.legend()
+    plt.xticks(np.arange(min(epoch_array), max(epoch_array) + 1, 2.0))
+    # # Plot initial environment and final environment for last simulation run
+    # plt.figure(1)
+    # plt.imshow(enve_init, interpolation='none')
+    # plt.figure(2)
+    # plt.imshow(enve_final, interpolation='none')
+    # print(track_happiness[-1])
