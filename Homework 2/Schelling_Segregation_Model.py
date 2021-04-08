@@ -1,6 +1,17 @@
+#####################################
+# Team: Nicholas DeGroote, Lynn Pickering, Vita Borovyk, and Owen Traubert
+#
+# To run this code:
+# At the bottom of the code, after the " if __name__ == "__main__": " statment
+# - Change the parameters you desire to change such as size of board
+# - Change the policy that you want to run
+# - change the parameters that affect that policy
+# - run the code, results are a plot of the mean happiness with standard deviation over the number of simulations run
+
 import numpy as np
 import copy
 import matplotlib.pyplot as plt
+import random
 
 
 class SchellingSegregationModel:
@@ -13,6 +24,10 @@ class SchellingSegregationModel:
             population_density: float,
             epochs: int,
             q: int = 100,
+            relocation_type: str = 'random',
+            number_friends: int = 2,
+            p: int = 3,
+            max_distance: int = 10
 
     ):
         self.k = k
@@ -22,6 +37,11 @@ class SchellingSegregationModel:
         self.epochs = epochs
         self.environment = []
         self.q = q
+        self.friends = []
+        self.number_friends = number_friends
+        self.p = p
+        self.relocation_type = relocation_type
+        self.max_dist = max_distance
 
     def create_environment(self) -> None:
         environment = np.random.choice([0, 1, 2],
@@ -58,10 +78,39 @@ class SchellingSegregationModel:
         for neighbor in neighbors_coord:
             # Had to reorder this array because I messed up order in neighbors_coord
             [j, i] = neighbor
-            if self.environment[i, j] == cell_type:
+            if self.environment[int(i), int(j)] == cell_type:
                 happy_level += 1
 
         return happy_level
+
+    def create_friends(self) -> None:
+        # set all friends to zero
+        self.friends = np.zeros(
+            [self.simulation_environment_width * self.simulation_environment_height, self.number_friends], dtype=int)
+
+        # line up all the cells
+        environment_friends = self.initial_enve.reshape(
+            self.simulation_environment_width * self.simulation_environment_height, 1)
+
+        # check if the cell is occupied and that friend is different from the current cell
+        for i in range(self.simulation_environment_width * self.simulation_environment_height):
+            if (environment_friends[i] != 0):  # check that there is someone there
+                for j in range(self.number_friends):  # choose a random cell number for a potential friend
+                    friend = np.random.randint(0,
+                                               self.simulation_environment_width * self.simulation_environment_height)
+                    friendsAlready = False
+                    for l in range(j):  # check if this cell is already our friend
+                        if self.friends[i][l] == friend:
+                            friendsAlready = True
+                    # if friend is self or empty cell or a friend already choose another one
+                    while (friend == i) or (environment_friends[friend] == 0) or (friendsAlready == True):
+                        friend = np.random.randint(0,
+                                                   self.simulation_environment_width * self.simulation_environment_height)
+                        friendsAlready = False
+                        for l in range(j):
+                            if self.friends[i][l] == friend:
+                                friendsAlready = True
+                    self.friends[i][j] = friend
 
     def relocation_policy_random(self, current_agent_row, current_agent_col):
         z = 3
@@ -78,8 +127,8 @@ class SchellingSegregationModel:
             # get random location
             # TODO: need to seed this??
             random_location = np.random.randint(len(available_locations_i))
-            rand_i = available_locations_i[random_location] # column
-            rand_j = available_locations_j[random_location] # row
+            rand_i = available_locations_i[random_location]  # column
+            rand_j = available_locations_j[random_location]  # row
 
             # remove this location from lists
             available_locations_i = np.delete(available_locations_i, random_location)
@@ -96,8 +145,82 @@ class SchellingSegregationModel:
 
         return checked_happy_levels[best_option][0:2]
 
+    def relocation_policy_social(self, cell_j, cell_i):
+        new_location = [cell_j, cell_i]
+        cell_type = self.environment[cell_j, cell_i]
+        available_happy_places = []
+
+        D1index = self.simulation_environment_width * cell_j + cell_i  # position in the linear stretched representation
+
+        for friend in self.friends[D1index]:
+            friend_j = friend // self.simulation_environment_width  # friend's location on the lattice
+            friend_i = friend % self.simulation_environment_width
+
+            for n in range(-(self.p // 2), self.p // 2 + 1):
+                for m in range(-(self.p // 2), self.p // 2 + 1):
+                    if (self.check_happiness((friend_j + n) % self.simulation_environment_width,
+                                             (friend_i + m) % self.simulation_environment_height, cell_type) > 2) and (
+                            self.environment[(friend_j + n) % self.simulation_environment_width, (
+                                                                                                         friend_i + m) % self.simulation_environment_height] == 0):
+                        available_happy_places.append([(friend_j + n) % self.simulation_environment_width,
+                                                       (friend_i + m) % self.simulation_environment_height])
+
+        if available_happy_places != []:
+            new_location = random.choice(available_happy_places)
+
+        return new_location
+
+    def relocation_policy_closest(self, current_agent_row, current_agent_col):
+        # Find all available empty locations
+        available_locations = np.where(self.environment == 0)
+        [available_locations_j, available_locations_i] = available_locations
+
+        distance_to_locations = ((available_locations_j - current_agent_row) ** 2
+                                 + (available_locations_i - current_agent_col) ** 2) ** .5
+        locations_w_distance = np.vstack((available_locations_j, available_locations_i, distance_to_locations))
+        locations_sorted = locations_w_distance[:, locations_w_distance[-1].argsort()]
+
+        idx_that_exceed_dist = np.where(locations_sorted[-1] > self.max_dist)
+        # not to exceed maximum distance to move
+        try:
+            available_locations = locations_sorted[:, 0: idx_that_exceed_dist[0][0]]
+        except IndexError:
+            # none exceeded max distance, then go to max cells checked
+            available_locations = locations_sorted[:, 0: self.q]
+
+        [available_locations_j, available_locations_i, distances] = available_locations
+
+        # backup list in case cell does not reach happiness level
+        checked_happy_levels = []
+        while len(available_locations_i) != 0:
+            # get location
+            coord_i = available_locations_i[0]  # column
+            coord_j = available_locations_j[0]  # row
+            distance = distances[0]
+            # remove this location from lists
+            available_locations_i = np.delete(available_locations_i, 0)
+            available_locations_j = np.delete(available_locations_j, 0)
+            distances = np.delete(distances, 0)
+
+            cell_type = self.environment[current_agent_row, current_agent_col]
+            happy_level = self.check_happiness(coord_j, coord_i, cell_type)
+            # make sure it does not count itself as a neighbor when moving to a neighboring position!
+            if distance == 1 or distance == 2 ** .5:
+                happy_level -= 1
+            if happy_level >= self.k:
+                return [coord_j, coord_i, distance]
+            else:
+                checked_happy_levels.append([coord_j, coord_i, distance, happy_level])
+        try:
+            best_option = np.where(checked_happy_levels == max(checked_happy_levels[-1]))[0][0]
+        except IndexError:
+            # no locations to move to that are close enough
+            return [current_agent_row, current_agent_col, 0]
+        return checked_happy_levels[best_option][0:3]
+
     def run_sim(self):
         self.create_environment()
+        self.create_friends()
         happiness_at_epochs = []
         for epoch in np.arange(0, self.epochs):
             agent_locations = np.where(self.environment != 0)
@@ -111,8 +234,7 @@ class SchellingSegregationModel:
                     agent_happy_level = self.check_happiness(row, col, self.environment[row, col])
                     if agent_happy_level >= 3:
                         epoch_happiness += 1
-            happiness_at_epochs.append(epoch_happiness/number_agents)
-
+            happiness_at_epochs.append(epoch_happiness / number_agents)
 
             while len(agent_rows) != 0:
                 random_agent = np.random.randint(len(agent_rows))
@@ -123,32 +245,65 @@ class SchellingSegregationModel:
                 agent_columns = np.delete(agent_columns, random_agent)
 
                 current_happy_level = self.check_happiness(agent_row, agent_col, self.environment[agent_row, agent_col])
-                if current_happy_level < 3:
-                    [move_to_row, move_to_col] = self.relocation_policy_random(agent_row, agent_col)
-                    self.environment[move_to_row, move_to_col] = self.environment[agent_row, agent_col]
+                if self.relocation_type == "random":
+                    if current_happy_level < 3:
+                        [move_to_row, move_to_col] = self.relocation_policy_random(agent_row, agent_col)
+                        self.environment[move_to_row, move_to_col] = self.environment[agent_row, agent_col]
+                        self.environment[agent_row, agent_col] = 0
+
+                elif self.relocation_type == "social":
+                    [move_to_row, move_to_col] = self.relocation_policy_social(agent_row, agent_col)
+                    if ([move_to_row, move_to_col] != [agent_row, agent_col]) and (current_happy_level < 3):
+                        self.environment[move_to_row, move_to_col] = self.environment[agent_row, agent_col]
+                        self.environment[agent_row, agent_col] = 0
+                        self.friends[move_to_row * self.simulation_environment_width + move_to_col] = self.friends[
+                            agent_row * self.simulation_environment_width + agent_col]
+                        self.friends[agent_row * self.simulation_environment_width + agent_col] = [
+                                                                                                      0] * self.number_friends
+
+                elif self.relocation_type == "closest_distance":
+                    [move_to_row, move_to_col, distance] = self.relocation_policy_closest(agent_row, agent_col)
+                    self.environment[int(move_to_row), int(move_to_col)] = self.environment[agent_row, agent_col]
+
                     self.environment[agent_row, agent_col] = 0
 
-
-
         return happiness_at_epochs, self.environment, self.initial_enve
+
 
 if __name__ == "__main__":
     k = 3  # number of agents of own typ in neighborhood for agent j to be happy
     sim_env_width = 40
     sim_env_height = 40
-    population_dens = .5  # how much of the environment is occupied by agents
-    epochs = 21
-    cells_to_check_for_relocation = 100
+    population_dens = .9  # how much of the environment is occupied by agents
+    epochs = 21  # epochs to run simulation for
+    cells_to_check_for_relocation = 100  # max cells to check for relocation, used in random and closest_distance
+
+    # Relocation policies to choose from: random, social, closest_distance
+    relocation_policy = 'social'
+
+    # for the social policy
+    number_of_friends = 5
+    friend_neighborhood = 3
+
+    # for the closest distance policy
+    maximum_distance = 10
+
     model = SchellingSegregationModel(
         k=k,
         simulation_environment_width=sim_env_width,
         simulation_environment_height=sim_env_height,
         population_density=population_dens,
         epochs=epochs,
-        q=cells_to_check_for_relocation)
+        q=cells_to_check_for_relocation,
+        relocation_type=relocation_policy,
+        number_friends=number_of_friends,
+        p=friend_neighborhood,
+        max_distance=maximum_distance)
 
     happiness_for_each_sim = np.array([])
-    sims_to_run = 30
+
+    # how many simulations to run and average over
+    sims_to_run = 3
 
     for sim in np.arange(0, sims_to_run):
         track_happiness, enve_final, enve_init = model.run_sim()
@@ -156,13 +311,15 @@ if __name__ == "__main__":
         print('Sim number: ', sim)
 
     happiness_for_each_sim = happiness_for_each_sim.reshape(sims_to_run, epochs)
-    average_happiness = happiness_for_each_sim.sum(axis=0)/sims_to_run
+    average_happiness = happiness_for_each_sim.sum(axis=0) / sims_to_run
+    st_dev_happiness = np.std(happiness_for_each_sim, axis=0)
 
     epoch_array = np.arange(0, epochs)
     plt.figure(1)
-    plt.plot(epoch_array, average_happiness)
-    plt.title('Mean Happiness time-series')
+    plt.errorbar(epoch_array, average_happiness, st_dev_happiness, label=(relocation_policy + " policy"))
+    plt.title('Mean Happiness time-series with standard deviation')
     plt.xlabel('Epoch')
     plt.ylabel('Mean Happiness')
+    plt.legend()
     plt.xticks(np.arange(min(epoch_array), max(epoch_array) + 1, 2.0))
     plt.show()
