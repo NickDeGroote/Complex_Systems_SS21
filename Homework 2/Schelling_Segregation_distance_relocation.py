@@ -189,7 +189,7 @@ if __name__ == "__main__":
     population_dens = .9  # how much of the environment is occupied by agents
     epochs = 21
     cells_to_check_for_relocation = 100
-    max_distances = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    max_distances = [3, 5, 10, 15]
 
     plot_all_sims_happy = np.array([])
     plot_all_sims_dist_moved = np.array([])
@@ -219,11 +219,22 @@ if __name__ == "__main__":
         average_distance = dist_for_each_sim.sum(axis=0) / sims_to_run
         plot_all_sims_dist_moved = np.append([plot_all_sims_dist_moved], average_distance)
 
+    no_max_dist_hap = [0.78042175, 0.97024305, 0.99376897, 0.99814846, 0.99937418,
+                        0.9996754, 0.99990706, 1., 1., 1.,
+                        1., 1., 1., 1., 1.,
+                        1., 1., 1., 1., 1.,
+                        1.]
+    no_max_dist_dist = [792.65052131, 1001.06837023, 1069.09083818, 1095.06819318,
+                        1102.48779635, 1106.38966948, 1107.84041265, 1107.84041265,
+                        1107.84041265, 1107.84041265, 1107.84041265, 1107.84041265,
+                        1107.84041265, 1107.84041265, 1107.84041265, 1107.84041265,
+                        1107.84041265, 1107.84041265, 1107.84041265, 1107.84041265,
+                        1107.84041265]
     random_policy_comp_happy = [0.77757862, 0.96093731, 0.98961532, 0.9969216, 0.9990309,
                                 0.99963403, 0.99995436, 0.9999774, 1., 1., 1., 1., 1., 1., 1.,
                                 1., 1., 1., 1., 1., 1.]
     plot_all_sims_happy = plot_all_sims_happy.reshape(len(max_distances), epochs)
-    sim2, sim3, sim4, sim5, sim6, sim7, sim8, sim9, sim10, sim11, sim12 = plot_all_sims_happy
+    sim3, sim5, sim10, sim15 = plot_all_sims_happy
 
     random_policy_comp_dist = [6270.87130973, 7674.08445364, 8066.77734958, 8190.0031193,
                                8237.62884937, 8251.87200157, 8252.87488627, 8255.08992616,
@@ -232,22 +243,16 @@ if __name__ == "__main__":
                                8255.08992616, 8255.08992616, 8255.08992616, 8255.08992616,
                                8255.08992616]
     plot_all_sims_dist_moved = plot_all_sims_dist_moved.reshape(len(max_distances), epochs)
-    sim2d, sim3d, sim4d, sim5d, sim6d, sim7d, sim8d, sim9d, sim10d, sim11d, sim12d = plot_all_sims_dist_moved
+    sim3d, sim5d, sim10d, sim15d = plot_all_sims_dist_moved
 
     epoch_array = np.arange(0, epochs)
     plt.figure(3)
     plt.plot(epoch_array, random_policy_comp_happy, label='Random Policy')
-    plt.plot(epoch_array, sim2, label='Max Distance Checked = 3')
-    plt.plot(epoch_array, sim3, label='Max Distance Checked = 4')
-    plt.plot(epoch_array, sim4, label='Max Distance Checked = 5')
-    plt.plot(epoch_array, sim5, label='Max Distance Checked = 6')
-    plt.plot(epoch_array, sim6, label='Max Distance Checked = 7')
-    plt.plot(epoch_array, sim7, label='Max Distance Checked = 8')
-    plt.plot(epoch_array, sim8, label='Max Distance Checked = 9')
-    plt.plot(epoch_array, sim9, label='Max Distance Checked = 10')
-    plt.plot(epoch_array, sim10, label='Max Distance Checked = 11')
-    plt.plot(epoch_array, sim11, label='Max Distance Checked = 12')
-    plt.plot(epoch_array, sim12, label='Max Distance Checked = 13')
+    plt.plot(epoch_array, sim3, label='Max Distance Checked = 3')
+    plt.plot(epoch_array, sim5, label='Max Distance Checked = 5')
+    plt.plot(epoch_array, sim10, label='Max Distance Checked = 10')
+    plt.plot(epoch_array, sim15, label='Max Distance Checked = 15')
+    plt.plot(epoch_array, no_max_dist_hap, label='No Max Distance')
 
     plt.title('Mean Happiness time-series')
     plt.xlabel('Epoch')
@@ -257,17 +262,11 @@ if __name__ == "__main__":
 
     plt.figure(4)
     plt.plot(epoch_array, random_policy_comp_dist, label='Random Policy')
-    plt.plot(epoch_array, sim2d, label='Max Distance Checked = 3')
-    plt.plot(epoch_array, sim3d, label='Max Distance Checked = 4')
-    plt.plot(epoch_array, sim4d, label='Max Distance Checked = 5')
-    plt.plot(epoch_array, sim5d, label='Max Distance Checked = 6')
-    plt.plot(epoch_array, sim6d, label='Max Distance Checked = 7')
-    plt.plot(epoch_array, sim7d, label='Max Distance Checked = 8')
-    plt.plot(epoch_array, sim8d, label='Max Distance Checked = 9')
-    plt.plot(epoch_array, sim9d, label='Max Distance Checked = 10')
-    plt.plot(epoch_array, sim10d, label='Max Distance Checked = 11')
-    plt.plot(epoch_array, sim11d, label='Max Distance Checked = 12')
-    plt.plot(epoch_array, sim12d, label='Max Distance Checked = 13')
+    plt.plot(epoch_array, sim3d, label='Max Distance Checked = 3')
+    plt.plot(epoch_array, sim5d, label='Max Distance Checked = 5')
+    plt.plot(epoch_array, sim10d, label='Max Distance Checked = 10')
+    plt.plot(epoch_array, sim15d, label='Max Distance Checked = 15')
+    plt.plot(epoch_array, no_max_dist_dist, label='No Max Distance')
     plt.title('Mean Total Distance traveled over epochs time-series')
     plt.xlabel('Epoch')
     plt.ylabel('Mean Distance traveled')
