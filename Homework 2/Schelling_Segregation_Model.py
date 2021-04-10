@@ -42,6 +42,8 @@ class SchellingSegregationModel:
         self.p = p
         self.relocation_type = relocation_type
         self.max_dist = max_distance
+        self.priority1 = []
+        self.priority2 = []
 
     def create_environment(self) -> None:
         environment = np.random.choice([0, 1, 2],
@@ -50,6 +52,30 @@ class SchellingSegregationModel:
                                           self.population_density / 2])
         self.environment = environment.reshape(self.simulation_environment_width, self.simulation_environment_height)
         self.initial_enve = copy.deepcopy(self.environment)
+
+
+    def create_priorities(self, pr1, pr2) -> None:
+        self.priority1 = []
+        self.priority2 = []
+        for j in range(self.simulation_environment_height):
+            row1=[]
+            row2=[]
+            for i in range(self.simulation_environment_width):
+                if (i < self.simulation_environment_width//2)  and (j< self.simulation_environment_height//2):
+                    row1.append(pr1[0])
+                    row2.append(pr2[0])
+                elif (i >= self.simulation_environment_width//2)  and (j< self.simulation_environment_height//2):
+                    row1.append(pr1[1])
+                    row2.append(pr2[1])
+                elif (i < self.simulation_environment_width//2)  and (j >= self.simulation_environment_height//2):
+                    row1.append(pr1[2])
+                    row2.append(pr2[2])
+                elif (i >= self.simulation_environment_width//2)  and (j>= self.simulation_environment_height//2):
+                    row1.append(pr1[3])
+                    row2.append(pr2[3])
+            self.priority1.append(row1)
+            self.priority2.append(row2)
+
 
     def check_happiness(self, cell_j, cell_i, cell_type):
         if cell_type == 0:
@@ -221,9 +247,48 @@ class SchellingSegregationModel:
             return [current_agent_row, current_agent_col, 0]
         return checked_happy_levels[best_option][0:3]
 
+    def relocation_policy_priorities(self, cell_j, cell_i, priority1, priority2):
+        new_location = [cell_j, cell_i]
+        cell_type = self.environment[cell_j, cell_i]
+
+        for best_place in range(4):
+            if cell_type == 1:
+                best_location = np.where(priority1==best_place)
+                available_locations = np.where((self.environment == 0) & (self.priority1 == priority1[best_location]))
+            elif cell_type == 2:
+                best_location = np.where(priority2==best_place)
+                available_locations = np.where((self.environment == 0) & (self.priority2 == priority2[best_location]))
+            [available_locations_j, available_locations_i] = available_locations
+
+            while len(available_locations_i) != 0:
+                # get random location
+                # TODO: need to seed this??
+                random_location = np.random.randint(len(available_locations_i))
+                rand_i = available_locations_i[random_location]  # column
+                rand_j = available_locations_j[random_location]  # row
+                # remove this location from lists
+                available_locations_i = np.delete(available_locations_i, random_location)
+                available_locations_j = np.delete(available_locations_j, random_location)
+                cell_type = self.environment[cell_j, cell_i]
+                happy_level = self.check_happiness(rand_j, rand_i, cell_type)
+                if happy_level >= self.k:
+                    return [rand_j, rand_i]
+
+        return new_location
+
+
     def run_sim(self):
         self.create_environment()
         self.create_friends()
+
+        priority1 = np.random.permutation([0, 1, 2, 3])
+        priority2 = np.random.permutation([0, 1, 2, 3])
+
+        # to use the same priority regions for both populations
+        # priority2 = priority1
+
+        self.create_priorities(priority1, priority2)
+
         happiness_at_epochs = []
         for epoch in np.arange(0, self.epochs):
             agent_locations = np.where(self.environment != 0)
@@ -270,6 +335,14 @@ class SchellingSegregationModel:
 
                     self.environment[agent_row, agent_col] = 0
 
+
+                elif self.relocation_type == "priority_location":
+                    if current_happy_level < 3:
+                        [move_to_row, move_to_col] = self.relocation_policy_priorities(agent_row, agent_col, priority1, priority2)
+                        if [move_to_row, move_to_col] != [agent_row, agent_col]:
+                            self.environment[move_to_row, move_to_col] = self.environment[agent_row, agent_col]
+                            self.environment[agent_row, agent_col] = 0
+
         return happiness_at_epochs, self.environment, self.initial_enve
 
 
@@ -278,11 +351,11 @@ if __name__ == "__main__":
     sim_env_width = 40
     sim_env_height = 40
     population_dens = .9  # how much of the environment is occupied by agents
-    epochs = 21  # epochs to run simulation for
+    epochs = 20  # epochs to run simulation for
     cells_to_check_for_relocation = 100  # max cells to check for relocation, used in random and closest_distance
 
-    # Relocation policies to choose from: random, social, closest_distance
-    relocation_policy = 'random'
+    # Relocation policies to choose from: random, social, closest_distance, priority_location
+    relocation_policy = 'priority_location'
 
     # for the social policy
     number_of_friends = 5
