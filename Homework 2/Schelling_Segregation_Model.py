@@ -399,3 +399,10 @@ if __name__ == "__main__":
     plt.legend()
     plt.xticks(np.arange(min(epoch_array), max(epoch_array) + 1, 2.0))
     plt.show()
+
+    # View the last simulation's initital and final environments
+    plt.figure(2)
+    plt.imshow(enve_init, interpolation='none')
+    plt.figure(3)
+    plt.imshow(enve_final, interpolation='none')
+    plt.show()
