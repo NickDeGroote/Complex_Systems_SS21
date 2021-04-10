@@ -73,13 +73,17 @@ class SchellingSegregationModel:
         # Build array of neighbor coordinates to check
         neighbors_coord = [[i_left, cell_j], [i_right, cell_j], [cell_i, j_up], [cell_i, j_down],
                            [i_left, j_up], [i_right, j_up], [i_left, j_down], [i_right, j_down]]
-        happy_level = 0
+
         # increase happy level for each neighbor of same type
-        for neighbor in neighbors_coord:
-            # Had to reorder this array because I messed up order in neighbors_coord
-            [j, i] = neighbor
-            if self.environment[int(i), int(j)] == cell_type:
-                happy_level += 1
+        happy_level = sum(int(self.environment[int(i), int(j)] == cell_type) for j, i in neighbors_coord)
+
+        # happy_level = 0
+        # # increase happy level for each neighbor of same type
+        # for neighbor in neighbors_coord:
+        #     # Had to reorder this array because I messed up order in neighbors_coord
+        #     [j, i] = neighbor
+        #     if self.environment[int(i), int(j)] == cell_type:
+        #         happy_level += 1
 
         return happy_level
 
@@ -115,7 +119,6 @@ class SchellingSegregationModel:
     def relocation_policy_random(self, current_agent_row, current_agent_col):
         z = 3
         available_locations = np.where(self.environment == 0)
-        # TODO: correct indexing???
         [available_locations_j, available_locations_i] = available_locations
 
         # counter for the number of new locations checked (no to exceed certain number)
@@ -125,7 +128,6 @@ class SchellingSegregationModel:
 
         while checked < self.q:
             # get random location
-            # TODO: need to seed this??
             random_location = np.random.randint(len(available_locations_i))
             rand_i = available_locations_i[random_location]  # column
             rand_j = available_locations_j[random_location]  # row
@@ -141,6 +143,7 @@ class SchellingSegregationModel:
             else:
                 checked_happy_levels.append([rand_j, rand_i, happy_level])
 
+            checked += 1
         best_option = np.where(checked_happy_levels == max(checked_happy_levels[-1]))[0][0]
 
         return checked_happy_levels[best_option][0:2]
@@ -279,7 +282,7 @@ if __name__ == "__main__":
     cells_to_check_for_relocation = 100  # max cells to check for relocation, used in random and closest_distance
 
     # Relocation policies to choose from: random, social, closest_distance
-    relocation_policy = 'social'
+    relocation_policy = 'random'
 
     # for the social policy
     number_of_friends = 5
