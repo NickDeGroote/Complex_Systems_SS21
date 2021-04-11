@@ -326,6 +326,11 @@ class SchellingSegregationModel:
                         self.environment[agent_row, agent_col] = 0
                         self.friends[move_to_row * self.simulation_environment_width + move_to_col] = self.friends[
                             agent_row * self.simulation_environment_width + agent_col]
+                                                for people_friends in self.friends:
+                        for friend in people_friends:
+                            if friend == agent_row * self.simulation_environment_width + agent_col:
+                                ind = np.where(people_friends == friend)
+                                people_friends[ind] = move_to_row * self.simulation_environment_width + move_to_col
                         self.friends[agent_row * self.simulation_environment_width + agent_col] = [
                                                                                                       0] * self.number_friends
 
