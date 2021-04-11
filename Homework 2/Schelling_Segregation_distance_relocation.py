@@ -45,6 +45,7 @@ class SchellingSegregationModel:
         i_right = cell_i + 1
         j_down = cell_j + 1
         j_up = cell_j - 1
+
         # implement wraparound environment
         if cell_i == 0:
             i_left = self.simulation_environment_width - 1
@@ -54,16 +55,15 @@ class SchellingSegregationModel:
             j_up = self.simulation_environment_height - 1
         elif cell_j == self.simulation_environment_height - 1:
             j_down = 0
+
+
         # Build array of neighbor coordinates to check
         neighbors_coord = [[i_left, cell_j], [i_right, cell_j], [cell_i, j_up], [cell_i, j_down],
                            [i_left, j_up], [i_right, j_up], [i_left, j_down], [i_right, j_down]]
-        happy_level = 0
+
         # increase happy level for each neighbor of same type
-        for neighbor in neighbors_coord:
-            # Had to reorder this array because I messed up order in neighbors_coord
-            [j, i] = neighbor
-            if self.environment[int(i), int(j)] == cell_type:
-                happy_level += 1
+        happy_level = sum(int(self.environment[int(i), int(j)] == cell_type) for j, i in neighbors_coord)
+
         return happy_level
 
     def relocation_policy_closest(self, current_agent_row, current_agent_col):
@@ -123,10 +123,10 @@ class SchellingSegregationModel:
         checked_happy_levels = []
         while checked < self.q:
             # get random location
-            # TODO: need to seed this??
             random_location = np.random.randint(len(available_locations_i))
             rand_i = available_locations_i[random_location]  # column
             rand_j = available_locations_j[random_location]  # row
+
             # remove this location from lists
             available_locations_i = np.delete(available_locations_i, random_location)
             available_locations_j = np.delete(available_locations_j, random_location)
@@ -137,6 +137,7 @@ class SchellingSegregationModel:
                 return [rand_j, rand_i, distance]
             else:
                 checked_happy_levels.append([rand_j, rand_i, happy_level])
+            checked += 1
         best_option = np.where(checked_happy_levels == max(checked_happy_levels[-1]))[0][0]
         distance = ((best_option[0] - current_agent_row) ** 2 + (best_option[1] - current_agent_col) ** 2) ** .5
         return checked_happy_levels[best_option][0:2], distance
@@ -181,7 +182,7 @@ class SchellingSegregationModel:
 
 
 if __name__ == "__main__":
-    sims_to_run = 30
+    sims_to_run = 2
 
     k = 3  # number of agents of own type in neighborhood for agent j to be happy
     sim_env_width = 40
