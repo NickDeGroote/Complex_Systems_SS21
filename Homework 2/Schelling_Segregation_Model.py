@@ -375,7 +375,7 @@ class SchellingSegregationModel:
 
         return new_location
 
-    def communityMove(self, friends, cell_j, cell_i, cell_type, clusterMembers, clusterLookup):
+    def community_relocation(self, friends, cell_j, cell_i, cell_type, clusterMembers, clusterLookup):
         happinessListFriends = []
         friendCoords = []
         #clusterInfo = self.getClusters()
@@ -555,7 +555,7 @@ class SchellingSegregationModel:
                         D1index = self.simulation_environment_width*agent_row + agent_col
                         friends = self.friends[D1index]
                         clusterMembers, clusterLookup = self.getClusters()
-                        [move_to_row, move_to_col] = self.communityMove(friends, agent_row, agent_col, self.environment[agent_row][agent_col], clusterMembers, clusterLookup)
+                        [move_to_row, move_to_col] = self.community_relocation(friends, agent_row, agent_col, self.environment[agent_row][agent_col], clusterMembers, clusterLookup)
                         D1newindex = move_to_row * self.simulation_environment_width + move_to_col
                         self.environment[move_to_row, move_to_col] = self.environment[agent_row, agent_col]
                         self.environment[agent_row, agent_col] = 0
