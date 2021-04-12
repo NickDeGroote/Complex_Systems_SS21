@@ -12,7 +12,8 @@ import numpy as np
 import copy
 import matplotlib.pyplot as plt
 import random
-
+import multiprocessing
+from joblib import Parallel, delayed
 
 class SchellingSegregationModel:
 
@@ -38,6 +39,8 @@ class SchellingSegregationModel:
         self.environment = []
         self.q = q
         self.friends = []
+        self.friendsReverse = []
+
         self.number_friends = number_friends
         self.p = p
         self.relocation_type = relocation_type
@@ -122,6 +125,8 @@ class SchellingSegregationModel:
         environment_friends = self.initial_enve.reshape(
             self.simulation_environment_width * self.simulation_environment_height, 1)
 
+        for i in range(self.simulation_environment_width * self.simulation_environment_height):
+                    self.friendsReverse.append([])
         # check if the cell is occupied and that friend is different from the current cell
         for i in range(self.simulation_environment_width * self.simulation_environment_height):
             if (environment_friends[i] != 0):  # check that there is someone there
@@ -141,6 +146,100 @@ class SchellingSegregationModel:
                             if self.friends[i][l] == friend:
                                 friendsAlready = True
                     self.friends[i][j] = friend
+                    self.friendsReverse[friend].append([i,j])
+
+    def getClusters(self):
+        #print(self.environment)
+        height = self.simulation_environment_height
+        width = self.simulation_environment_width
+        # an array to keep track of which cells have been visited
+        memberOf = np.full((height, width), -1) #np.empty((height, width), dtype=int).fill(-1)
+        array = self.environment
+        # two lists to keep track of the parents of clusters and cluster membership
+        #parentNodes = []
+        clusterMembership = []
+        childNodes = []
+    
+        # keeps track of the number of clusters
+        numClusters = 0
+    
+        for i in range(height):
+            for j in range(width):
+                if (array[i][j]) and (memberOf[i][j] == -1):
+                    # a stack to keep track of which cells need to be visited
+                    toVisit = []
+                    # add the first node to the list of parent nodes
+                    #parentNodes.append([i, j])
+    
+                    childNodes.append([[i,j]])
+                    clusterMembership.append(1)
+                    toVisit.append([i, j])
+                    memberOf[i][j] = numClusters
+    
+                    # perform a depth-first traversal of neighbors of the parent node
+                    while toVisit:
+                        # get coordinates of node at the top of the stack
+                        y = toVisit[-1][0]
+                        x = toVisit[-1][1]
+    
+                        # two lists to hold the coordinates in which to check for neighbors
+                        yCoords = []
+                        xCoords = []
+    
+                        # determine coordinates to check
+                        # NOTE: could make this worse on memory but better on computing time
+                        # by putting newCellFound outside the while loop
+                        # to let the program know whether it needs to generate all this
+                        # and just saving it the first time in the stack structure
+                        if y == 0:
+                            yCoords.append(height-1)
+                            yCoords.append(y)
+                            yCoords.append(y + 1)
+                        elif y == height - 1:
+                            yCoords.append(0)
+                            yCoords.append(y - 1)
+                            yCoords.append(y)
+                        else:
+                            yCoords.append(y - 1)
+                            yCoords.append(y)
+                            yCoords.append(y + 1)
+                        if x == 0:
+                            xCoords.append(width-1)
+                            xCoords.append(x)
+                            xCoords.append(x + 1)
+                        elif x == width - 1:
+                            xCoords.append(0)
+                            xCoords.append(x - 1)
+                            xCoords.append(x)
+                        else:
+                            xCoords.append(x - 1)
+                            xCoords.append(x)
+                            xCoords.append(x + 1)
+    
+                        # keeps track if a new cell has been found
+                        newCellFound = False
+    
+                        for yCoord in yCoords:
+                            for xCoord in xCoords:
+                                # for an unvisited, occupied cell in the cluster
+                                if (array[yCoord][xCoord] and memberOf[yCoord][xCoord] == -1):
+                                    newCellFound = True
+                                    # increment the number of cells in this cluster
+                                    clusterMembership[numClusters] += 1
+                                    # add the cell to the list of child cells in the cluster
+                                    childNodes[numClusters].append([yCoord, xCoord])
+                                    # push the new cell onto the stack
+                                    toVisit.append([yCoord, xCoord])
+                                    memberOf[yCoord][xCoord] = numClusters
+                                    break
+                            if newCellFound:
+                                break
+    
+                        if not newCellFound:
+                            toVisit.pop()
+                    numClusters += 1
+    
+        return (childNodes, memberOf)
 
     def relocation_policy_random(self, current_agent_row, current_agent_col):
         z = 3
@@ -276,6 +375,109 @@ class SchellingSegregationModel:
 
         return new_location
 
+    def communityMove(self, friends, cell_j, cell_i, cell_type, clusterMembers, clusterLookup):
+        happinessListFriends = []
+        friendCoords = []
+        #clusterInfo = self.getClusters()
+        #clusterMembers = clusterInfo[1]
+        #clusterLookup = clusterInfo[2]
+        #print(clusterLookup)
+    
+        friendClusters = []
+        for i in range(self.number_friends):
+            happinessSum = 0
+            friend = self.friends[cell_i*self.simulation_environment_width+cell_j][i]
+            friend_i = friend//self.simulation_environment_width
+            friend_j = friend%self.simulation_environment_width
+            #print(friend_i, friend_j)
+            friendCoords.append([friend_i, friend_j])
+            
+            friendCluster = clusterLookup[friend_i][friend_j]
+           
+            #print("clusters: ",friendCluster, altCluster)
+        
+            try:
+                duplicateClusterPosition = friendClusters.index(friendCluster)
+                happinessListFriends.append(happinessListFriends[duplicateClusterPosition])
+            
+            except:
+                                
+                numTypeCluster = 0
+                friendClusters.append(friendCluster)
+                
+                for j in range(len(clusterMembers[friendCluster])):
+                    checkCell_i = clusterMembers[friendCluster][j][0]
+                    checkCell_j = clusterMembers[friendCluster][j][1]
+                    #print(self.environment[checkCell_i][checkCell_j], cell_type, self.environment[checkCell_i][checkCell_j]==cell_type)
+                    if(self.environment[checkCell_i][checkCell_j] == cell_type):
+                        happinessSum += self.check_happiness(cell_j, cell_i, cell_type)
+                        numTypeCluster += 1
+                        #print(numTypeCluster)
+                if(numTypeCluster == 0):
+                    happinessListFriends.append(-1)
+                else:
+                    happinessListFriends.append(happinessSum/numTypeCluster)
+               
+                #print(happinessListFriends)
+        
+        #now find a suitable place in the best cluster to move to
+        
+        #while there are still friends whose neighborhoods haven't been checked
+        happiestFriendNeighbors = []
+        visited = np.zeros((self.simulation_environment_height, self.simulation_environment_width), dtype = np.int)
+        while(len(happinessListFriends)):
+            happiestFriend = np.argmax(happinessListFriends)
+            happiestFriendNeighbors.append(friendCoords[happiestFriend])
+            
+            #find the closest emptiest, contiguous cell to friend
+            #cap number of degrees of separation to find an empty spot at 3
+            degreesOfSeparation = 3
+            
+            while(len(happiestFriendNeighbors) and degreesOfSeparation >= 0):
+                degreesOfSeparation -= 1
+                y, x = happiestFriendNeighbors.pop(0)
+                yCoords = []
+                xCoords = []
+                visited[y][x] = 1
+                
+                if y == 0:
+                    yCoords.append(self.simulation_environment_height-1)
+                    yCoords.append(y)
+                    yCoords.append(y + 1)
+                elif y == self.simulation_environment_height - 1:
+                    yCoords.append(0)
+                    yCoords.append(y - 1)
+                    yCoords.append(y)
+                else:
+                    yCoords.append(y - 1)
+                    yCoords.append(y)
+                    yCoords.append(y + 1)
+                if x == 0:
+                    xCoords.append(self.simulation_environment_width-1)
+                    xCoords.append(x)
+                    xCoords.append(x + 1)
+                elif x == self.simulation_environment_width - 1:
+                    xCoords.append(0)
+                    xCoords.append(x - 1)
+                    xCoords.append(x)
+                else:
+                    xCoords.append(x - 1)
+                    xCoords.append(x)
+                    xCoords.append(x + 1)
+                
+                for i in (yCoords):
+                    for j in (xCoords):
+                        if(not self.environment[i][j]):
+                            #if an empty cell is found, return its coordinates
+                            return([i, j])
+                        elif(self.environment[i][j] == cell_type and visited[i][j] == 0):
+                            #otherwise span out
+                            happiestFriendNeighbors.append([i,j])
+            #when there are no more contiguous neighbors of the right type (unlikely)
+            #the next happiest friend will be selected
+            happinessListFriends.pop(happiestFriend)
+        #if no space found, return current coord
+        return([cell_i, cell_j])
 
     def run_sim(self):
         self.create_environment()
@@ -347,24 +549,43 @@ class SchellingSegregationModel:
                         if [move_to_row, move_to_col] != [agent_row, agent_col]:
                             self.environment[move_to_row, move_to_col] = self.environment[agent_row, agent_col]
                             self.environment[agent_row, agent_col] = 0
-
+                
+                elif self.relocation_type == "community":
+                    if current_happy_level < 3:
+                        D1index = self.simulation_environment_width*agent_row + agent_col
+                        friends = self.friends[D1index]
+                        clusterMembers, clusterLookup = self.getClusters()
+                        [move_to_row, move_to_col] = self.communityMove(friends, agent_row, agent_col, self.environment[agent_row][agent_col], clusterMembers, clusterLookup)
+                        D1newindex = move_to_row * self.simulation_environment_width + move_to_col
+                        self.environment[move_to_row, move_to_col] = self.environment[agent_row, agent_col]
+                        self.environment[agent_row, agent_col] = 0
+                        self.friends[D1newindex] = self.friends[
+                            agent_row * self.simulation_environment_width + agent_col]
+                        self.friends[agent_row * self.simulation_environment_width + agent_col] = [0]*self.number_friends
+                        for i in range(len(self.friendsReverse[D1index])):
+                            friendToChange, friendToChangePosition = self.friendsReverse[D1index][i]
+                            self.friends[friendToChange][friendToChangePosition] = D1newindex
+                        self.friendsReverse[D1newindex] = self.friendsReverse[D1index]
+                        self.friendsReverse[D1index]  = []
         return happiness_at_epochs, self.environment, self.initial_enve
 
+def simRunner(model):
+    return(model.run_sim())
 
 if __name__ == "__main__":
     k = 3  # number of agents of own typ in neighborhood for agent j to be happy
     sim_env_width = 40
     sim_env_height = 40
-    population_dens = .9  # how much of the environment is occupied by agents
+    population_dens = .3  # how much of the environment is occupied by agents
     epochs = 20  # epochs to run simulation for
     cells_to_check_for_relocation = 100  # max cells to check for relocation, used in random and closest_distance
 
     # Relocation policies to choose from: random, social, closest_distance, priority_location
-    relocation_policy = 'priority_location'
+    relocation_policy = 'community'
 
     # for the social policy
     number_of_friends = 5
-    friend_neighborhood = 3
+    friend_neighborhood = 5
 
     # for the closest distance policy
     maximum_distance = 10
@@ -385,12 +606,31 @@ if __name__ == "__main__":
 
     # how many simulations to run and average over
     sims_to_run = 3
+    
+    #multiprocessing because why not I added it in my version because I was tryign to get better speed
+    '''
+    models = []
+    for i in range(sims_to_run):
+        models.append(model)
+    num_cpu_cores = multiprocessing.cpu_count()
+    sim_results = Parallel(n_jobs=num_cpu_cores)(
+                delayed(simRunner)(model)
+                for model in models
+            )
+    
+    for i in range(sims_to_run):
+        happiness_for_each_sim = np.append([happiness_for_each_sim], sim_results[i][0])
+    enve_final, enve_init = sim_results[0][1], sim_results[0][2]
+    '''
 
+
+    
     for sim in np.arange(0, sims_to_run):
         track_happiness, enve_final, enve_init = model.run_sim()
         happiness_for_each_sim = np.append([happiness_for_each_sim], np.array(track_happiness))
         print('Sim number: ', sim)
-
+    
+    
     happiness_for_each_sim = happiness_for_each_sim.reshape(sims_to_run, epochs)
     average_happiness = happiness_for_each_sim.sum(axis=0) / sims_to_run
     st_dev_happiness = np.std(happiness_for_each_sim, axis=0)
