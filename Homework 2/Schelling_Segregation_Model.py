@@ -1,19 +1,18 @@
-#####################################
+"""
 # Team: Nicholas DeGroote, Lynn Pickering, Vita Borovyk, and Owen Traubert
 #
-# To run this code:
-# At the bottom of the code, after the " if __name__ == "__main__": " statment
-# - Change the parameters you desire to change such as size of board
-# - Change the policy that you want to run
-# - change the parameters that affect that policy
-# - run the code, results are a plot of the mean happiness with standard deviation over the number of simulations run
+To run this code:
+At the bottom of the code, after the " if __name__ == "__main__": " statment
+- Change the parameters you desire to change such as size of board
+- Change the policy that you want to run
+- change the parameters that affect that policy
+- run the code, results are a plot of the mean happiness with standard deviation over the number of simulations run
+"""
 
 import numpy as np
 import copy
 import matplotlib.pyplot as plt
 import random
-import multiprocessing
-from joblib import Parallel, delayed
 
 class SchellingSegregationModel:
 
@@ -105,14 +104,6 @@ class SchellingSegregationModel:
 
         # increase happy level for each neighbor of same type
         happy_level = sum(int(self.environment[int(i), int(j)] == cell_type) for j, i in neighbors_coord)
-
-        # happy_level = 0
-        # # increase happy level for each neighbor of same type
-        # for neighbor in neighbors_coord:
-        #     # Had to reorder this array because I messed up order in neighbors_coord
-        #     [j, i] = neighbor
-        #     if self.environment[int(i), int(j)] == cell_type:
-        #         happy_level += 1
 
         return happy_level
 
@@ -383,18 +374,12 @@ class SchellingSegregationModel:
             available_locations = np.where(self.environment == 1)
         else:
             raise ValueError
-        # TODO: correct indexing???
 
         [available_locations_j, available_locations_i] = available_locations
         test_indicies = random.sample(range(len(available_locations_i)), self.q)
-        # counter for the number of new locations checked (no to exceed certain number)
-        checked = 0
-        # backup list in case cell does not reach happiness level
-        checked_happy_levels = []
         curr_cell_type = self.environment[current_agent_row, current_agent_col]
         for index in test_indicies:
             # get random location
-            # TODO: need to seed this??
             rand_i = available_locations_i[index]  # column
             rand_j = available_locations_j[index]  # row
             other_cell_type = self.environment[rand_j, rand_i]
@@ -402,24 +387,11 @@ class SchellingSegregationModel:
             happy_level_other_cell = self.check_happiness(current_agent_row, current_agent_col, other_cell_type)
             if happy_level_curr_cell >= self.k:
                 return [rand_j, rand_i]
-            # else:
-            # checked_happy_levels.append([rand_j, rand_i, happy_level_curr_cell + happy_level_other_cell])
         return [current_agent_row, current_agent_col]
-        best_happy = 0
-        best_option = None
-        for row in checked_happy_levels:
-            if row[-1] > best_happy:
-                best_happy = row[-1]
-                best_option = row
-        return best_option[0:2]
 
     def community_relocation(self, friends, cell_j, cell_i, cell_type, clusterMembers, clusterLookup):
         happinessListFriends = []
         friendCoords = []
-        #clusterInfo = self.getClusters()
-        #clusterMembers = clusterInfo[1]
-        #clusterLookup = clusterInfo[2]
-        #print(clusterLookup)
     
         friendClusters = []
         for i in range(self.number_friends):
@@ -427,12 +399,10 @@ class SchellingSegregationModel:
             friend = self.friends[cell_i*self.simulation_environment_width+cell_j][i]
             friend_i = friend//self.simulation_environment_width
             friend_j = friend%self.simulation_environment_width
-            #print(friend_i, friend_j)
             friendCoords.append([friend_i, friend_j])
             
             friendCluster = clusterLookup[friend_i][friend_j]
-           
-            #print("clusters: ",friendCluster, altCluster)
+
         
             try:
                 duplicateClusterPosition = friendClusters.index(friendCluster)
@@ -446,17 +416,13 @@ class SchellingSegregationModel:
                 for j in range(len(clusterMembers[friendCluster])):
                     checkCell_i = clusterMembers[friendCluster][j][0]
                     checkCell_j = clusterMembers[friendCluster][j][1]
-                    #print(self.environment[checkCell_i][checkCell_j], cell_type, self.environment[checkCell_i][checkCell_j]==cell_type)
                     if(self.environment[checkCell_i][checkCell_j] == cell_type):
                         happinessSum += self.check_happiness(cell_j, cell_i, cell_type)
                         numTypeCluster += 1
-                        #print(numTypeCluster)
                 if(numTypeCluster == 0):
                     happinessListFriends.append(-1)
                 else:
                     happinessListFriends.append(happinessSum/numTypeCluster)
-               
-                #print(happinessListFriends)
         
         #now find a suitable place in the best cluster to move to
         
@@ -526,7 +492,6 @@ class SchellingSegregationModel:
 
         # to use the same priority regions for both populations
         # priority2 = priority1
-
         self.create_priorities(priority1, priority2)
 
         happiness_at_epochs = []
@@ -624,15 +589,16 @@ def simRunner(model):
     return(model.run_sim())
 
 if __name__ == "__main__":
+
+    # Relocation policies to choose from: random, social, closest_distance, priority_location
+    relocation_policy = 'swap'
+
     k = 3  # number of agents of own typ in neighborhood for agent j to be happy
     sim_env_width = 40
     sim_env_height = 40
     population_dens = .9  # how much of the environment is occupied by agents
     epochs = 20  # epochs to run simulation for
     cells_to_check_for_relocation = 100  # max cells to check for relocation, used in random and closest_distance
-
-    # Relocation policies to choose from: random, social, closest_distance, priority_location
-    relocation_policy = 'swap'
 
     # for the social policy
     number_of_friends = 5
@@ -657,22 +623,6 @@ if __name__ == "__main__":
 
     # how many simulations to run and average over
     sims_to_run = 30
-    
-    #multiprocessing because why not I added it in my version because I was tryign to get better speed
-    '''
-    models = []
-    for i in range(sims_to_run):
-        models.append(model)
-    num_cpu_cores = multiprocessing.cpu_count()
-    sim_results = Parallel(n_jobs=num_cpu_cores)(
-                delayed(simRunner)(model)
-                for model in models
-            )
-    
-    for i in range(sims_to_run):
-        happiness_for_each_sim = np.append([happiness_for_each_sim], sim_results[i][0])
-    enve_final, enve_init = sim_results[0][1], sim_results[0][2]
-    '''
 
 
     
