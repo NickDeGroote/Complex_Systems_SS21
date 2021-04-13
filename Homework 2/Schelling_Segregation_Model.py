@@ -1,12 +1,32 @@
 """
-# Team: Nicholas DeGroote, Lynn Pickering, Vita Borovyk, and Owen Traubert
-#
+Team: Nicholas DeGroote, Lynn Pickering, Vita Borovyk, and Owen Traubert
+
 To run this code:
-At the bottom of the code, after the " if __name__ == "__main__": " statment
+
+requirements: numpy, matplotlib
+
+At the bottom of the code, after the " if __name__ == "__main__": " statement
 - Change the parameters you desire to change such as size of board
 - Change the policy that you want to run
 - change the parameters that affect that policy
-- run the code, results are a plot of the mean happiness with standard deviation over the number of simulations run
+
+The following parameters are available to be changed by the user:
+    General parameters:
+
+    relocation_policy: Options - "random", "social", "priority_location", "community", "closest", "swap"
+    k: number of agents of own typ in neighborhood for agent j to be happy
+    sim_env_width: width of the board
+    sim_env_height: height of the board
+    population_dens: how much of the environment is occupied by agents
+    epochs: epochs to run simulation for
+    cells_to_check_for_relocation: max cells to check for relocation, used in random and closest_distance
+
+    Social Policy Parameters:
+    number_of_friends: Number of friends for the social policy
+    friend_neighborhood: Size of the friend neighborhood
+
+*Execute this file using Python 3.8
+Plots of the mean happiness with standard deviation over the number of simulations run are generated
 """
 
 import numpy as np
@@ -627,8 +647,8 @@ if __name__ == "__main__":
     relocation_policy = "swap"
 
     k = 3  # number of agents of own typ in neighborhood for agent j to be happy
-    sim_env_width = 40
-    sim_env_height = 40
+    sim_env_width = 40  # width of the board
+    sim_env_height = 40  # height of the board
     population_dens = 0.9  # how much of the environment is occupied by agents
     epochs = 20  # epochs to run simulation for
     cells_to_check_for_relocation = 100  # max cells to check for relocation, used in random and closest_distance
