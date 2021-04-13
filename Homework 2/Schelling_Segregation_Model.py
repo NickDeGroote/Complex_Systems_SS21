@@ -515,7 +515,7 @@ class SchellingSegregationModel:
 
                 for i in yCoords:
                     for j in xCoords:
-                        if not self.environment[i][j]:
+                        if(not self.environment[i][j]) and (self.check_happiness(j, i, cell_type) > self.check_happiness(cell_j, cell_i, cell_type)):
                             # if an empty cell is found, return its coordinates
                             return [i, j]
                         elif self.environment[i][j] == cell_type and visited[i][j] == 0:
