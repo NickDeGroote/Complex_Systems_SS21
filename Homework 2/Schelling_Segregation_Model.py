@@ -375,6 +375,44 @@ class SchellingSegregationModel:
 
         return new_location
 
+    def relocation_policy_swap(self, current_agent_row, current_agent_col):
+        z = 3
+        if self.environment[current_agent_row][current_agent_col] == 1:
+            available_locations = np.where(self.environment == 2)
+        elif self.environment[current_agent_row][current_agent_col] == 2:
+            available_locations = np.where(self.environment == 1)
+        else:
+            raise ValueError
+        # TODO: correct indexing???
+
+        [available_locations_j, available_locations_i] = available_locations
+        test_indicies = random.sample(range(len(available_locations_i)), self.q)
+        # counter for the number of new locations checked (no to exceed certain number)
+        checked = 0
+        # backup list in case cell does not reach happiness level
+        checked_happy_levels = []
+        curr_cell_type = self.environment[current_agent_row, current_agent_col]
+        for index in test_indicies:
+            # get random location
+            # TODO: need to seed this??
+            rand_i = available_locations_i[index]  # column
+            rand_j = available_locations_j[index]  # row
+            other_cell_type = self.environment[rand_j, rand_i]
+            happy_level_curr_cell = self.check_happiness(rand_j, rand_i, curr_cell_type)
+            happy_level_other_cell = self.check_happiness(current_agent_row, current_agent_col, other_cell_type)
+            if happy_level_curr_cell >= self.k:
+                return [rand_j, rand_i]
+            # else:
+            # checked_happy_levels.append([rand_j, rand_i, happy_level_curr_cell + happy_level_other_cell])
+        return [current_agent_row, current_agent_col]
+        best_happy = 0
+        best_option = None
+        for row in checked_happy_levels:
+            if row[-1] > best_happy:
+                best_happy = row[-1]
+                best_option = row
+        return best_option[0:2]
+
     def community_relocation(self, friends, cell_j, cell_i, cell_type, clusterMembers, clusterLookup):
         happinessListFriends = []
         friendCoords = []
@@ -549,6 +587,19 @@ class SchellingSegregationModel:
                         if [move_to_row, move_to_col] != [agent_row, agent_col]:
                             self.environment[move_to_row, move_to_col] = self.environment[agent_row, agent_col]
                             self.environment[agent_row, agent_col] = 0
+
+                elif self.relocation_type == "swap":
+                    if current_happy_level < 3:
+                        [move_to_row, move_to_col] = self.relocation_policy_swap(
+                            agent_row, agent_col
+                        )
+                        temp_agent = self.environment[
+                            move_to_row, move_to_col
+                        ]
+                        self.environment[move_to_row, move_to_col] = self.environment[
+                            agent_row, agent_col
+                        ]
+                        self.environment[agent_row, agent_col] = temp_agent
                 
                 elif self.relocation_type == "community":
                     if current_happy_level < 3:
@@ -576,12 +627,12 @@ if __name__ == "__main__":
     k = 3  # number of agents of own typ in neighborhood for agent j to be happy
     sim_env_width = 40
     sim_env_height = 40
-    population_dens = .3  # how much of the environment is occupied by agents
+    population_dens = .9  # how much of the environment is occupied by agents
     epochs = 20  # epochs to run simulation for
     cells_to_check_for_relocation = 100  # max cells to check for relocation, used in random and closest_distance
 
     # Relocation policies to choose from: random, social, closest_distance, priority_location
-    relocation_policy = 'community'
+    relocation_policy = 'swap'
 
     # for the social policy
     number_of_friends = 5
@@ -605,7 +656,7 @@ if __name__ == "__main__":
     happiness_for_each_sim = np.array([])
 
     # how many simulations to run and average over
-    sims_to_run = 3
+    sims_to_run = 30
     
     #multiprocessing because why not I added it in my version because I was tryign to get better speed
     '''
