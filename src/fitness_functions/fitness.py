@@ -36,7 +36,7 @@ def clusterSizeFitness(initialConditions, timesteps):
     return meanFitness
 
 def fractalFitnessDensity(initialConditions, timesteps):
-    result2d = getGOLResults(initialConditions, timesteps)
+    result2d = getGOLResults(initialConditions, timesteps, rules="b3s23")
     fitnessList = densityAwareFractalFitness(result2d)
     meanFitness = stats.mean(fitnessList)
     return meanFitness
