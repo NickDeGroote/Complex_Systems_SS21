@@ -95,6 +95,33 @@ def getFractalFitness(array, height, width, R1, base, minDim, maxDim):
 
     return (fitness, meanDimension)
 
+def getDensityAwareFractalFitness(array, height, width, R1, base, minDim, maxDim):
+    # this will make fitness close to 0 when it's one fractal dimesion away
+    # from the goal
+    scalingConstant = 4
+
+    fullCells = 0
+    for i in range(height):
+        for j in range(width):
+            if(array[i][j]):
+                fullCells += 1 
+
+    dimensions = getFractalComplexity(array, height, width, R1, base)
+    meanDimension = statistics.mean(dimensions)
+
+    # this allows for neutral space where fitness is 1 for a range
+    diff = 0
+    if meanDimension < minDim:
+        diff = minDim - meanDimension
+    elif meanDimension > maxDim:
+        diff = meanDimension - maxDim
+
+
+    
+    fitness = fullCells * math.pow(np.e, -scalingConstant * diff)
+    
+
+    return (fitness, meanDimension)
 
 def defaultFractalFitness(timestepBoards):
     minDim = 1.58
@@ -117,6 +144,33 @@ def defaultFractalFitness(timestepBoards):
             R1 = 9
 
         fractalInfo = getFractalFitness(
+            stepBoard, height, width, R1, base, minDim, maxDim
+        )
+        fractalFitnessList.append(fractalInfo[0])
+
+    return fractalFitnessList
+
+def densityAwareFractalFitness(timestepBoards):
+    minDim = 1.58
+    maxDim = 1.9
+
+    fractalFitnessList = []
+    for board in timestepBoards:
+        stepBoard = np.array(board)
+        boardShape = np.shape(stepBoard)
+        height = boardShape[0]
+        width = boardShape[1]
+
+        R1 = None
+        base = None
+        if not (height % 2):
+            base = 2
+            R1 = 4
+        elif not (height % 3):
+            base = 3
+            R1 = 9
+
+        fractalInfo = getDensityAwareFractalFitness(
             stepBoard, height, width, R1, base, minDim, maxDim
         )
         fractalFitnessList.append(fractalInfo[0])
