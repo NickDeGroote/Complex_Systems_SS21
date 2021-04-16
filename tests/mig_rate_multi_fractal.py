@@ -22,7 +22,7 @@ fitness_function = lambda ic: fractalFitness(ic, eval_range)
 k = 4
 num_genes = (2**k) ** 2
 # Number of populations being used in the MP GA
-num_populations = int(num_genes / 4)
+num_populations = 4
 # Number of Chromosomes initially in each Population
 population_size = int(num_genes / 4)
 # A migration event will be analyzed after this many generations
