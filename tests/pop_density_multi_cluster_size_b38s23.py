@@ -17,7 +17,7 @@ start = 40
 stop = 60
 eval_range = range(start, stop)
 # Callback for the fitness function being used
-fitness_function = lambda ic: clusterSizeFitness(ic, eval_range)
+fitness_function = lambda ic: clusterSizeFitness(ic, eval_range, "b38s23")
 # Number of initial condition cells
 k = 4
 num_genes = (2**k) ** 2

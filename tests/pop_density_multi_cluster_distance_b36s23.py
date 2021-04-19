@@ -17,14 +17,14 @@ start = 40
 stop = 60
 eval_range = range(start, stop)
 # Callback for the fitness function being used
-fitness_function = lambda ic: clusterSizeFitness(ic, eval_range)
+fitness_function = lambda ic: clusterDistanceFitness(ic, eval_range, "b36s23")
 # Number of initial condition cells
 k = 4
 num_genes = (2**k) ** 2
 # Number of populations being used in the MP GA
-num_populations = int(num_genes / 4)
+num_populations = 4
 # Number of Chromosomes initially in each Population
-population_size = 4
+population_size = int(num_genes / 4)
 # A migration event will be analyzed after this many generations
 migration_frequency = 1
 # Probability that a migration will occur when being analyzed

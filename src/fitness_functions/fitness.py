@@ -7,30 +7,30 @@ import statistics as stats
 import numpy as np
 
 
-def getGOLResults(initialConditions, timesteps):
+def getGOLResults(initialConditions, timesteps, rules):
     squaredDimensions = len(initialConditions)
     height = int(math.sqrt(squaredDimensions))
     width = height
     initialBoard = np.array(initialConditions)
-    result2d, result1d = run_GOL(initialBoard, timesteps, width, height)
+    result2d, result1d = run_GOL(initialBoard, timesteps, width, height, rules)
     return result2d
 
 
-def fractalFitness(initialConditions, timesteps):
-    result2d = getGOLResults(initialConditions, timesteps)
+def fractalFitness(initialConditions, timesteps, rules="b3s23"):
+    result2d = getGOLResults(initialConditions, timesteps, rules)
     fitnessList = defaultFractalFitness(result2d)
     meanFitness = stats.mean(fitnessList)
     return meanFitness
 
 
-def clusterDistanceFitness(initialConditions, timesteps):
-    result2d = getGOLResults(initialConditions, timesteps)
+def clusterDistanceFitness(initialConditions, timesteps, rules="b3s23"):
+    result2d = getGOLResults(initialConditions, timesteps, rules)
     fitnessList = defaultClusterDistanceFitness(result2d)
     meanFitness = stats.mean(fitnessList)
     return meanFitness
 
-def clusterSizeFitness(initialConditions, timesteps):
-    result2d = getGOLResults(initialConditions, timesteps)
+def clusterSizeFitness(initialConditions, timesteps, rules="b3s23"):
+    result2d = getGOLResults(initialConditions, timesteps, rules)
     fitnessList = maxClusterSizeFitness(result2d)
     meanFitness = stats.mean(fitnessList)
     return meanFitness
