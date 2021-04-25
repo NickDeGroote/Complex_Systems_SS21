@@ -7,7 +7,7 @@ def getFractalComplexity(array, height, width, R1, BASE):
     # R1 is the side length in number of cells of the least magnification
     # it is assumed that the greatest magnification will be the individual cell
     # ideally it is a power of BASE, and if it's not we pretend it is anyway
-    # k is the number of different scales we can look at
+    # k is the scale we look at
     k = int(round(math.log(R1, BASE)))
 
     # create a list in which to hold all the tesselated arrays and the number of squares it takes
@@ -58,7 +58,9 @@ def getFractalComplexity(array, height, width, R1, BASE):
     dimensions = []
 
     for i in range(k):
-        # calculate s epsilon for each differential magnification level
+        # calculate s
+        # calculation is not the most efficient way possible but leaves open
+        # other possibilities that can be realized more efficiently
         if numSquares[i] == 0:
             dimensions.append(0)
             continue
@@ -69,8 +71,8 @@ def getFractalComplexity(array, height, width, R1, BASE):
         dimension = math.log(sEp, BASE)
 
         dimensions.append(dimension)
-
-    return dimensions
+        
+    return(statistics.mean(dimensions))
 
 
 # recommended values 1.58 to 1.9 for fractals
@@ -81,19 +83,18 @@ def getFractalFitness(array, height, width, R1, base, minDim, maxDim):
     # from the goal
     scalingConstant = 4
 
-    dimensions = getFractalComplexity(array, height, width, R1, base)
-    meanDimension = statistics.mean(dimensions)
+    dimension = getFractalComplexity(array, height, width, R1, base)
 
     # this allows for neutral space where fitness is 1 for a range
     diff = 0
-    if meanDimension < minDim:
-        diff = minDim - meanDimension
-    elif meanDimension > maxDim:
-        diff = meanDimension - maxDim
+    if dimension < minDim:
+        diff = minDim - dimension
+    elif dimension > maxDim:
+        diff = dimension - maxDim
 
     fitness = math.pow(np.e, -scalingConstant * diff)
 
-    return (fitness, meanDimension)
+    return (fitness, dimension)
 
 def getDensityAwareFractalFitness(array, height, width, R1, base, minDim, maxDim):
     # this will make fitness close to 0 when it's one fractal dimesion away
@@ -106,22 +107,21 @@ def getDensityAwareFractalFitness(array, height, width, R1, base, minDim, maxDim
             if(array[i][j]):
                 fullCells += 1 
 
-    dimensions = getFractalComplexity(array, height, width, R1, base)
-    meanDimension = statistics.mean(dimensions)
+    dimension = getFractalComplexity(array, height, width, R1, base)
 
     # this allows for neutral space where fitness is 1 for a range
     diff = 0
-    if meanDimension < minDim:
-        diff = minDim - meanDimension
-    elif meanDimension > maxDim:
-        diff = meanDimension - maxDim
+    if dimension < minDim:
+        diff = minDim - dimension
+    elif dimension > maxDim:
+        diff = dimension - maxDim
 
 
     
     fitness = fullCells * math.pow(np.e, -scalingConstant * diff)
     
 
-    return (fitness, meanDimension)
+    return (fitness, dimension)
 
 def defaultFractalFitness(timestepBoards):
     minDim = 1.58
